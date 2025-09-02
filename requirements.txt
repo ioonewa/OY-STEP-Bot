@@ -1,0 +1,9 @@
+pydantic
+
+aiogram
+
+python-dotenv
+
+asyncpg
+
+pillow

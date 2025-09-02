@@ -1,0 +1,31 @@
+CONTENT_DIR = "content"
+
+LESSONS_DIR = "content/lessons"
+
+TEMPLATES_DIR = "content/templates"
+
+LOGS_DIR = "logs"
+PHOTOS_DIR = "photos"
+
+DIRS = [
+    LOGS_DIR,
+    PHOTOS_DIR,
+
+    CONTENT_DIR,
+    LESSONS_DIR,
+    TEMPLATES_DIR
+]
+
+STASH_GROUP = -4831289621
+PRIVATE_CHANNEL = -1002907913958
+
+INVITE_LINK = "https://t.me/+Ks5JwTQGofRiOWNi"
+
+# | —
+
+
+# Lessons
+
+LESSON_1 = "1_WHY_IT_IS_IMPORTANT"
+LESSON_2 = "2_HOW_TO_STOP_AFRAID"
+LESSON_3 = "3_HOW_TO_FILMING"
