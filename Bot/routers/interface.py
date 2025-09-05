@@ -144,7 +144,7 @@ async def start(message: Message, state: FSMContext):
 async def menu(message: Message):
     await message.answer(
         "<b>OYBOT</b> - это простой и удобный бот для брокеров.\n\n"
-        "<b>Бот позволяем:</b>\n\n"
+        "<b>Бот позволяет:</b>\n\n"
         "— Создавать персональный контент\n\n"
         "— Смотреть календарь брокеров-туров\n\n"
         "— Получать новые скиллы (раздел \"Обучение\")",
