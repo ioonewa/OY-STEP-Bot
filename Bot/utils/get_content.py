@@ -338,6 +338,9 @@ async def get_personal_photo(
         data = user_data.get(text)
         if not data:
             continue
+
+        if text == "username":
+            data = f"@{data}"
         
         overlay_text(
             text=data,
