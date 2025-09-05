@@ -1,89 +1,4 @@
-from PIL import Image, ImageDraw, ImageFont
-
-from .stash import stash_img
-
-def overlay_photo(
-        top: int,
-        left: int,
-        rect_width: int,
-        rect_height: int,
-        frame_path: str,
-        photo_path: str,
-        out_file:str,
-        angle: float = 0
-    ):
-    # Загружаем рамку и фото
-    frame = Image.open(frame_path).convert("RGBA")
-    photo = Image.open(photo_path).convert("RGBA")
-
-    # Масштабирование с сохранением пропорций, заполнение всего прямоугольника
-    scale_w = rect_width / photo.width
-    scale_h = rect_height / photo.height
-    scale = max(scale_w, scale_h)  # берём максимум, чтобы заполнить весь прямоугольник
-    new_size = (int(photo.width * scale), int(photo.height * scale))
-    photo_resized = photo.resize(new_size, Image.LANCZOS)
-
-    # Обрезка лишнего, чтобы вписать ровно в прямоугольник
-    left_crop = (photo_resized.width - rect_width) // 2
-    top_crop = (photo_resized.height - rect_height) // 2
-    photo_cropped = photo_resized.crop((
-        left_crop,
-        top_crop,
-        left_crop + rect_width,
-        top_crop + rect_height
-    ))
-
-    # Поворот (expand=True, чтобы не обрезались углы)
-    photo_rotated = photo_cropped.rotate(angle, expand=True)
-
-    # Вставка в рамку
-    frame.paste(photo_rotated, (left, top), photo_rotated)
-
-    # Сохраняем результат
-    frame.save(out_file)
-    return out_file
-
-def overlay_text(
-    text: str,
-    file_path: str,
-    font: str,
-    font_size: int,
-    color: tuple,
-    text_x: int,
-    text_y: int,
-    offset_x: int = 0,
-    center: bool = False,
-    upper: bool = False
-):
-    frame = Image.open(file_path).convert("RGBA")
-    # Добавление текста
-    if text:
-        draw = ImageDraw.Draw(frame)
-        if font:
-            font = ImageFont.truetype(f"content/fonts/{font}", font_size)
-        else:
-            font = ImageFont.load_default()
-
-        if center:
-            # размеры изображения
-            img_w, img_h = frame.size
-
-            # размеры текста через textbbox
-            bbox = draw.textbbox((0, 0), text, font=font)
-            text_w, text_h = bbox[2] - bbox[0], bbox[3] - bbox[1]
-
-            # координаты по центру
-            text_x = ((img_w - text_w) // 2) + offset_x
-
-        if upper:
-            text = text.upper()
-
-        draw.text((text_x, text_y), text, font=font, fill=color)
-
-    # Сохраняем
-    frame.save(file_path)
-
-    return file_path
+from Bot.utils.get_content import overlay_photo, overlay_text
 
 rules = {
     "2": {
@@ -163,7 +78,6 @@ rules = {
             "font": {
                 "name": "TTChocolates-Regular.ttf",
                 "size": 42,
-                "upper": True,
                 "center": False,
                 "offset_x": 20
             },
@@ -195,7 +109,6 @@ rules = {
         },
         "story": {
             "font": {
-                "upper": True,
                 "name": "TTChocolates-Regular.ttf",
                 "size": 44
             },
@@ -307,11 +220,10 @@ rules = {
     }
 }
 
-async def get_personal_photo(
+def get_personal_photo(
     user_data: dict,
     style: str,
     post_id: str,
-    telegram_id: int,
     obj: str
 ) -> str:
     """
@@ -321,8 +233,9 @@ async def get_personal_photo(
     Пока это скорее заглушка
     """
     frame_path = f"content/templates/{post_id}/{style}/{obj}/6.png"
-    out_file=f"photos/{telegram_id}/{post_id}_{style}.png"
+    out_file=f"test/{style}_{obj}_{post_id}.png"
     
+
     rules_obj = rules[f"{post_id}"][obj]
     font =  rules_obj["font"]
     text_colors = rules[f"{post_id}"]["text_colors"]
@@ -350,11 +263,22 @@ async def get_personal_photo(
             color=text_colors[style],
             **params
         )
-        
-    file_id = await stash_img(out_file)
-    return file_id
-    
 
+    return out_file
 
+for post in [4]:
+    for obj in ["story", "post"]:
+        for style in ["White", "Pastel", "Color", "Black"]:
 
-
+            get_personal_photo(
+                {
+                    "username": "@ionewa",
+                    "phone_number": "+7 987 109 43 74",
+                    "email": "daniil.0iwr@gmail.com",
+                    "name": "Даниил Лобанов",
+                    "photo_source": "photo.png"
+                },
+                style,
+                post,
+                obj
+            )

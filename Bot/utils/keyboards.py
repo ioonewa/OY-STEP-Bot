@@ -44,18 +44,25 @@ def menu_kb() -> ReplyKeyboardMarkup:
         resize_keyboard=True
     )
 
-def post_vars_kb(post_id: str, vars: List[str], current_var: str) -> InlineKeyboardMarkup:
-    kb_vars = []
-    for var in vars:
-        kb_vars.append(InlineKeyboardButton(
-            text=f"☑️ {var}" if var == current_var else var,
-            callback_data=f"var_{var}" if var != current_var else "current_var"
+def post_styles_kb(
+        post_id: str,
+        styles: List[str],
+        current: str
+    ) -> InlineKeyboardMarkup:
+    kb_styles = []
+    for style in styles:
+        kb_styles.append(InlineKeyboardButton(
+            text="☑️" if style == current else style,
+            callback_data=f"preview:{post_id}:{style}" if style != current else "current_style"
         ))
 
+    file_ident = f"{post_id}:{current}"
+
     kb = [
-        kb_vars,
-        [InlineKeyboardButton(text="Для Истории", callback_data=f"story:{post_id}:{current_var}")],
-        [InlineKeyboardButton(text="Для Поста", callback_data=f"post:{post_id}:{current_var}")],
+        kb_styles,
+        [InlineKeyboardButton(text="Для Истории", callback_data=f"story:{file_ident}")],
+        [InlineKeyboardButton(text="Для Поста", callback_data=f"post:{file_ident}")],
+        [InlineKeyboardButton(text="Видео", callback_data=f"video:{file_ident}")]
     ]
 
     return InlineKeyboardMarkup(inline_keyboard=kb)
@@ -74,6 +81,14 @@ def pin_phone_kb() -> ReplyKeyboardMarkup:
         keyboard=[
             [KeyboardButton(text=PIN_PHONE_BTN, request_contact=True)],
             [KeyboardButton(text=BACK_BTN)]
+        ]
+    )
+
+def channels_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text="🔓 Приватный канал", url=config.INVITE_LINK)],
+            [InlineKeyboardButton(text="Новостной канал", url=config.PUBLIC_CHANNEL)]
         ]
     )
 
@@ -97,3 +112,15 @@ def faq_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[
         [InlineKeyboardButton(text="Написать в поддержку", url="https://t.me/ionewa")]
     ])
+
+def hide_content_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[InlineKeyboardButton(text="✖️ Скрыть", callback_data="hide_content")]
+    )
+
+def edit_profile_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text=_['btn'], callback_data=f"edit:{_['field']}")] for _ in config.FIELDS_TO_EDIT
+        ]
+    )

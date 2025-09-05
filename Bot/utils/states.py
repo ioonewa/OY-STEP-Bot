@@ -7,3 +7,9 @@ class Registration(StatesGroup):
     email = State()
     photo = State()
     approve = State()
+    
+class Edit(StatesGroup):
+    name = State()
+    phone_number = State()
+    email = State()
+    photo = State()

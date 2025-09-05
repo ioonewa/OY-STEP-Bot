@@ -23,7 +23,7 @@ class AccessMiddleware(BaseMiddleware):
         user = await database.get_user(event.from_user.id)
         if not user:
             await event.answer("Для доступа к боту свяжитесь с разработчиками")
-            return 
+            return
 
 
         return await handler(event, data)

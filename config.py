@@ -20,6 +20,7 @@ STASH_GROUP = -4831289621
 PRIVATE_CHANNEL = -1002907913958
 
 INVITE_LINK = "https://t.me/+Ks5JwTQGofRiOWNi"
+PUBLIC_CHANNEL = "https://t.me/oystepmediaburo"
 
 # | —
 
@@ -29,3 +30,16 @@ INVITE_LINK = "https://t.me/+Ks5JwTQGofRiOWNi"
 LESSON_1 = "1_WHY_IT_IS_IMPORTANT"
 LESSON_2 = "2_HOW_TO_STOP_AFRAID"
 LESSON_3 = "3_HOW_TO_FILMING"
+
+
+#  Fields
+FIELDS_TO_EDIT = [
+    {"field": "name", "btn": "Имя"},
+    {"field": "phone_number", "btn": "Номер телефона"},
+    {"field": "email", "btn": "Почта"},
+    {"field": "photo", "btn": "Фотография"}
+]
+
+# Limits:
+NAME_LIMIT = 150
+EMAIL_LIMIT = 150

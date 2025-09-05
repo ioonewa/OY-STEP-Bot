@@ -6,6 +6,9 @@ from datetime import datetime
 from .enums.user import (
     UserStatus
 )
+from .enums.media_files import (
+    FileTypes
+)
 
 import logging
 
@@ -60,8 +63,10 @@ class Database:
         logger.info(f"({len(tables_sql)}) таблиц успешно созданы")
 
     async def drop_tables(self):
-        await self.execute("DROP SCHEMA public CASCADE")
-        await self.execute("CREATE SCHEMA public")
+        # await self.execute("DROP SCHEMA public CASCADE")
+        await self.execute("DROP TABLE media_files")
+        await self.execute("DROP TABLE posts")
+        # await self.execute("CREATE SCHEMA public")
 
     async def add_user(self, telegram_id: int, username: str, status: str):
         await self.execute(
@@ -82,12 +87,34 @@ class Database:
         await self.execute(
             'UPDATE users SET name = $1, phone_number = $2, '
             'email = $3, photo_tg = $4, photo_source = $5, '
-            'status = $6 '
+            'status = $6, updated_at = current_timestamp '
             'WHERE telegram_id = $7',
             name, phone_number, email,
             photo_tg, photo_source,
             UserStatus.ACTIVE,
             telegram_id
+        )
+
+    async def update_name(
+        self,
+        telegram_id: int,
+        name: str
+    ):
+        await self.execute(
+            'UPDATE users SET name = $1, updated_at = current_timestamp '
+            'WHERE telegram_id = $2',
+            name, telegram_id
+        )
+
+    async def update_(
+        self,
+        telegram_id: int,
+        name: str
+    ):
+        await self.execute(
+            'UPDATE users SET name = $1, updated_at = current_timestamp '
+            'WHERE telegram_id = $2',
+            name, telegram_id
         )
 
     async def get_user_data_dict(self, telegram_id: int) -> dict:
@@ -123,30 +150,49 @@ class Database:
     async def add_post(
         self, 
         name: str,
-        styles: List[str]
+        styles: List[str],
+        text: str
     ) -> int:
         return await self.execute(
-            'INSERT INTO posts (name, styles) VALUES ($1,$2) returning id',
-            name, styles,
+            'INSERT INTO posts (name, styles, text) VALUES ($1,$2,$3) returning id',
+            name, styles, text,
             fetchval=True
         )
 
     async def get_post_styles(self, post_id: int) -> List[str]:
         return await self.execute(
-            'SELECT styles FROM posts WHERE id = $', post_id,
+            'SELECT styles FROM posts WHERE id = $1', post_id,
             fetchval=True
         )
     
-    async def get_post_files(
-        self, post_id: int, style: str
+    async def get_posts_id(self) -> List[int]:
+        res = await self.execute(
+            'SELECT id FROM posts',
+            fetch=True
+        )
+
+        return [_['id'] for _ in res]
+    
+    async def get_post_text(self, post_id: int) -> Optional[str]:
+        return await self.execute(
+            'SELECT text FROM posts WHERE id = $1',
+            post_id,
+            fetchval=True
+        )
+    
+    async def get_content_files(
+        self,
+        post_id: int,
+        style: str,
+        file_type: str
     ) -> List[str]:
         res = await self.execute(
-            'SELECT telegram_file_id FROM media_files WHERE post_id = $1 and style = $2',
-            post_id, style,
+            'SELECT telegram_file_id FROM media_files WHERE post_id = $1 and style = $2 and file_type = $3',
+            post_id, style, file_type,
             fetch=True
         )
         return [_['telegram_file_id'] for _ in res]
-    
+
     async def add_media_file(
         self,
         post_id: Optional[int],

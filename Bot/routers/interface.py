@@ -3,21 +3,129 @@ from aiogram.filters import CommandStart, Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import (
     Message,
-    CallbackQuery,
-    FSInputFile
+    CallbackQuery
 )
 from aiogram.enums import ChatAction
 
 from loader import database
 from Database.enums.user import UserStatus
 
-from .registration import start_registration
+from .registration import start_registration, validate_phone
 from ..utils import keyboards as kb
+from ..utils.states import Edit
+from ..utils.stash import stash_img
 
 import config
 
 router = Router()
 
+@router.message(Edit.name, F.text == kb.BACK_BTN)
+@router.message(Edit.email, F.text == kb.BACK_BTN)
+@router.message(Edit.phone_number, F.text == kb.BACK_BTN)
+@router.message(Edit.photo, F.text == kb.BACK_BTN)
+async def cancel_edit(message: Message, state: FSMContext):
+    await state.clear()
+    await menu(message)
+
+@router.message(Edit.name, F.text)
+async def edit_name(message: Message, state: FSMContext):
+    name = message.text
+
+    if len(name) > config.NAME_LIMIT:
+        await message.reply(f"Имя слишко длинное, максимальное кол-во символов - {config.NAME_LIMIT}")
+        return
+
+    await database.execute(
+        'UPDATE users SET name = $1, updated_at = current_timestamp WHERE telegram_id = $2',
+        name, message.from_user.id
+    )
+    await state.clear()
+    await message.answer("Изменения сохранены", reply_markup=kb.menu_kb())
+    await profile(message)
+
+@router.message(Edit.email, F.text)
+async def edit_email(message: Message, state: FSMContext):
+    email = message.text
+
+    if len(email) > config.NAME_LIMIT:
+        await message.reply(f"Имя слишко длинное, максимальное кол-во символов - {config.NAME_LIMIT}")
+        return
+
+    await database.execute(
+        'UPDATE users SET email = $1, updated_at = current_timestamp WHERE telegram_id = $2',
+        email, message.from_user.id
+    )
+    await state.clear()
+    await message.answer("Изменения сохранены", reply_markup=kb.menu_kb())
+    await profile(message)
+
+@router.message(Edit.phone_number, F.text)
+async def edit_phone_number(message: Message, state: FSMContext):
+    phone_number = message.text
+
+    phone_number = validate_phone(phone_number)
+    if not phone_number:
+        await message.reply("Номер некорректный, попробуйте снова")
+        return
+
+    await database.execute(
+        'UPDATE users SET phone_number = $1, updated_at = current_timestamp WHERE telegram_id = $2',
+        phone_number, message.from_user.id
+    )
+    await state.clear()
+    await message.answer("Изменения сохранены", reply_markup=kb.menu_kb())
+    await profile(message)
+
+@router.message(F.contact, Edit.phone_number)
+async def edit_phone_number_contact(message: Message, state: FSMContext):
+    contact = message.contact
+    if contact.user_id != message.from_user.id:
+        await message.reply("Можно отправлять только свой контакт")
+        return
+    
+    phone_number = validate_phone(contact.phone_number)
+    if not phone_number:
+        await message.reply("Номер некорректный, попробуйте снова")
+        return
+    
+    await database.execute(
+        'UPDATE users SET phone_number = $1, updated_at = current_timestamp WHERE telegram_id = $2',
+        phone_number, message.from_user.id
+    )
+    await state.clear()
+    await message.answer("Изменения сохранены", reply_markup=kb.menu_kb())
+    await profile(message)
+
+@router.message(F.photo | F.document, Edit.photo)
+async def edit_photo(message: Message, state: FSMContext):
+    tg_id = message.from_user.id
+    save_dir = f"photos/{tg_id}"
+    file_path = f"{save_dir}/photo.png"
+
+    if message.photo:
+        file_id = message.photo[-1].file_id
+    elif message.document and message.document.mime_type.startswith("image/"):
+        file_id = message.document.file_id
+
+    file = await message.bot.get_file(file_id)
+    await message.bot.download_file(file.file_path, destination=file_path)
+
+    tg_photo_id = await stash_img(file_path)
+    await database.execute(
+        'UPDATE users SET photo_tg = $1, updated_at = current_timestamp WHERE telegram_id = $2',
+        tg_photo_id, message.from_user.id
+    )
+    await state.clear()
+    await message.answer("Изменения сохранены", reply_markup=kb.menu_kb())
+    await profile(message)
+
+
+@router.message(Edit.name)
+@router.message(Edit.email)
+@router.message(Edit.phone_number)
+@router.message(Edit.photo)
+async def wrong_input(message: Message):
+    await message.answer("Недопустимый формат ввода", reply_markup=kb.back_kb())
 
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext):
@@ -84,10 +192,8 @@ async def tours(message: Message):
 @router.message(F.text == kb.CHANNEL_BTN)
 async def channel(message: Message):
     await message.answer(
-        "<b>Вам доступно 2 канала.</b>\n\n"
-        f"Приватный канал\n\n"
-        "<a href='https://t.me/oystepmediaburo'>Новостной канал</a>",
-        reply_markup=kb.channel_invite_kb()
+        "<b>Вам доступно 2 канала.</b>",
+        reply_markup=kb.channels_kb()
     )
 
 @router.message(F.text == kb.FAQ_BTN)
@@ -95,20 +201,20 @@ async def faq(message: Message):
     await message.answer(
         """<b>Часто задаваемые вопросы</b>
         
-▫️ Как работает этот бот?
-\t\t\t\t- Бот обрабатывает ваши запросы и выдает быстрый результат автоматически.
+<b>Как работает этот бот</b>
+- Бот обрабатывает ваши запросы и выдает быстрый результат автоматически.
 
-▫️ Сколько стоит использование бота?
-\t\t\t\t- Цена зависит от выбранного тарифа.
+<b>Сколько стоит использование бота?</b>
+- Цена зависит от выбранного тарифа.
 
-▫️ Что делать, если бот не отвечает?
-\t\t\t\t- Попробуйте перезапустить чат или повторить запрос через несколько минут.
+<b>Что делать, если бот не отвечает?</b>
+- Попробуйте перезапустить чат или повторить запрос через несколько минут.
 
-▫️ Можно ли пользоваться ботом с телефона и компьютера?
-\t\t\t\t- Да, бот доступен в Telegram на любых устройствах.
+<b>Можно ли пользоваться ботом с телефона и компьютера?</b>
+- Да, бот доступен в Telegram на любых устройствах.
 
-▫️ К кому обращаться при проблемах?
-\t\t\t\t- Вы можете написать в поддержку""",
+<b>К кому обращаться при проблемах?</b>
+- Вы можете написать в поддержку""",
         reply_markup=kb.faq_kb()
     )
 
@@ -140,8 +246,36 @@ async def profile(message: Message):
         caption=f"<b>{user_data['name']}</b>\n\n"
         f"https://t.me/{user_data['username']}\n"
         f"{user_data['phone_number']}\n"
-        f"{user_data['email']}"
+        f"{user_data['email']}\n\n"
+        "Чтобы редактировать профиль, воспользуйтесь кнопками\n"
+        "👇🏻",
+        reply_markup=kb.edit_profile_kb()
     )
+
+@router.callback_query(F.data.startswith("edit:"))
+async def edit_profile(call: CallbackQuery, state: FSMContext):
+    field = call.data.replace("edit:", "")
+    
+    reply_markup = kb.back_kb()
+
+    if field == "name":
+        text = "<b>Напишите свое Имя и Фамилию (в одном сообщение)</b>"
+        state_name = Edit.name
+    elif field == "phone_number":
+        text = "<b>Напишите ваш Номер телефона (в формате +7...)</b>"
+        state_name = Edit.phone_number
+        reply_markup = kb.pin_phone_kb()
+    elif field == "photo":
+        text = "<b>Прикрепите вашу Фотографию</b>"
+        state_name = Edit.photo
+    elif field == "email":
+        text = "<b>Напишите ваш Email</b>"
+        state_name = Edit.email
+    
+    await call.message.answer(text, reply_markup=reply_markup)
+    await state.set_state(state_name)
+
+    await call.message.edit_reply_markup()
 
 @router.callback_query(F.data.startswith("lesson:"))
 async def lesson_id(call: CallbackQuery):
@@ -161,6 +295,10 @@ async def lesson_id(call: CallbackQuery):
         caption=lesson['name']
     )
     await call.answer()
+
+@router.callback_query()
+async def hide_content(call: CallbackQuery):
+    await call.message.delete()
 
 @router.callback_query()
 async def development(call: CallbackQuery):
