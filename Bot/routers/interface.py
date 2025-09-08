@@ -227,6 +227,7 @@ async def get_post_content_cb(message: Message, state: FSMContext, command: Comm
         if creator_id:
             logging.info(f"Пользователь {user.id} добавлен в бота по ссылку от {creator_id}")
             await message.answer(f"<b>Вы были добавлены в фокус группу для Тестирования!</b>")
+            await database.add_user(user.id, user.username, UserStatus.REGISTRATION)
             await start_registration(message, state, user.id)
             try:
                 await admin_bot.send_message(creator_id, f"✅ Пользователь @{user.username} ({user.id}) получил доступ к боту.")
