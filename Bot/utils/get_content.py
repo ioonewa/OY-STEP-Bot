@@ -13,7 +13,8 @@ def overlay_photo(
         frame_path: str,
         photo_path: str,
         out_file:str,
-        angle: float = 0
+        angle: float = 0,
+        corner_radius: int = 0
     ):
     # Загружаем рамку и фото
     frame = Image.open(frame_path).convert("RGBA")
@@ -39,10 +40,30 @@ def overlay_photo(
     # Поворот (expand=True, чтобы не обрезались углы)
     photo_rotated = photo_cropped.rotate(angle, expand=True)
 
-    # Вставка в рамку
+
+    # --- СОЗДАНИЕ МАСКИ ДЛЯ СКРУГЛЕНИЯ ---
+    mask = Image.new("L", photo_rotated.size, 0)  # ч/б маска
+    draw = ImageDraw.Draw(mask)
+
+    if corner_radius > 0:
+        # Скруглённый прямоугольник
+        draw.rounded_rectangle(
+            (0, 0, photo_rotated.width, photo_rotated.height),
+            radius=corner_radius,
+            fill=255
+        )
+    else:
+        # Без маски (прямоугольник)
+        mask = None
+
+    # Если есть маска → применяем
+    if mask:
+        photo_rotated.putalpha(mask)
+
+    # Вставка фото в рамку
     frame.paste(photo_rotated, (left, top), photo_rotated)
 
-    # Сохраняем результат
+    # Сохранение
     frame.save(out_file)
     return out_file
 
@@ -307,6 +328,80 @@ rules = {
             "Pastel": (255,255,255,255),
             "White": (0,0,0,255)
         }
+    },
+    "5": {
+        "post": {
+            "font": {
+                "name": "TTChocolates-Regular.ttf",
+                "size": 58,
+                "center": True
+            },
+            "photo": {
+                "top": 58,
+                "left": 140,
+                "rect_width": 800,
+                "rect_height": 800,
+                "corner_radius": 10000
+            },
+            "text": {
+                "name": {
+                    "text_x": 224,
+                    "text_y": 1000
+                },
+                "phone_number": {
+                    "text_x": 224,
+                    "text_y": 1070
+                },
+                "email": {
+                    "text_x": 224,
+                    "text_y": 1140
+                },
+                "username": {
+                    "text_x": 224,
+                    "text_y": 1210
+                },
+            }
+        },
+        "story": {
+            "font": {
+                "name": "TTChocolates-Regular.ttf",
+                "size": 62,
+                "center": True
+            },
+            "photo": {
+                "top": 290,
+                "left": 110,
+                "rect_width": 860,
+                "rect_height": 860,
+                "corner_radius": 1000
+            },
+            "text": {
+                "name": {
+                    "text_x": 160,
+                    "text_y": 1325
+                },
+                "phone_number": {
+                    "text_x": 160,
+                    "text_y": 1415
+                },
+                "email": {
+                    "text_x": 160,
+                    "text_y": 1505
+                },
+                "username": {
+                    "text_x": 160,
+                    "text_y": 1595
+                },
+                
+            },
+        },
+        "video": {},
+        "text_colors": {
+            "Black": (255,255,255,255),
+            "Color": (0,0,0,255),
+            "Pastel": (0,0,0,255),
+            "White": (0,0,0,255)
+        }
     }
 }
 
@@ -383,6 +478,18 @@ async def get_personal_photo(
         photo_path=user_data['photo_source'],
         out_file=out_file
     )
+
+    if str(post_id) == "5" and obj == "post":
+        overlay_photo(
+            top=-56,
+            left=443,
+            rect_width=187,
+            rect_height=187,
+            frame_path=out_file,
+            photo_path="content/for_bot/Ellipse.png",
+            out_file=out_file,
+            corner_radius=1000
+        )
 
     for text, params in rules_obj["text"].items():
         data = user_data.get(text)
