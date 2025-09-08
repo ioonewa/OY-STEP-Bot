@@ -6,10 +6,11 @@ class Registration(StatesGroup):
     phone_number = State()
     email = State()
     photo = State()
-    approve = State()
+    approve_photo = State()
     
 class Edit(StatesGroup):
     name = State()
     phone_number = State()
     email = State()
     photo = State()
+    approve_photo = State()

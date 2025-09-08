@@ -2,12 +2,10 @@ from aiogram import Router, F
 from aiogram.types import (
     Message,
     CallbackQuery,
-    FSInputFile,
-    InputMediaPhoto,
-    InputMediaDocument
+    InputMediaPhoto
 )
 from aiogram.utils.media_group import MediaGroupBuilder
-from aiogram.filters import Command, CommandStart, CommandObject
+from aiogram.filters import CommandStart, CommandObject
 from ..utils import keyboards as kb
 from ..utils.get_content import get_personal_photo
 
@@ -19,9 +17,14 @@ from loader import database
 
 from typing import Optional
 
+import logging
+
 router = Router()
 
 # https://t.me/oystep_bot?start=post1
+# https://t.me/oystep_bot?start=2
+# https://t.me/oystep_bot?start=3
+# https://t.me/oystep_bot?start=4
 # https://t.me/oysteptest_bot?start=2
 
 async def get_post_preview(
@@ -59,24 +62,6 @@ async def get_post_preview(
             media=InputMediaPhoto(media=preview, caption=text),
             reply_markup=kb.post_styles_kb(post_id, styles, style)
         )
-    
-
-@router.message(CommandStart(deep_link=True))
-async def get_post_content(message: Message, command: CommandObject):
-    post_id = command.args.replace("post", "")
-
-    if not post_id.isdigit():
-        await message.answer("Некорректная ссылка")
-        await menu(message)
-        return
-    
-    post_id = int(post_id)
-
-    ids = await database.get_posts_id()
-    if post_id in ids:
-        await get_post_preview(message, post_id)
-    else:
-        await message.answer("Публикация не доступна")
 
 @router.callback_query(F.data.startswith("preview:"))
 async def change_vars(call: CallbackQuery):
@@ -125,7 +110,7 @@ async def get_post_content(call: CallbackQuery):
 
     await call.message.answer_media_group(media=media_group.build(), protect_content=False)
     # Место для обучалки
-    await call.message.answer("👆🏻\nТеперь перешли пост в свой телеграм-канал. <b>Незабудь скрыть имя отправителя</b>")
+    await send_instructions(call.message, "post")
     await call.answer()
 
 # Получение контента для Истории
@@ -160,7 +145,12 @@ async def get_content_story(call: CallbackQuery):
 
     await call.message.answer_media_group(media=media_group.build(), protect_content=False)
     # Место для обучалки
-    await call.message.answer("""<b>Как выложить фотографии в Истории Telegram</b>
+    await send_instructions(call.message, "story")
+    await call.answer()
+
+instructions = {
+    "story": {
+        "tg": """👆🏻 <b>Как выложить историю в Telegram</b>
 
 1. Откройте фото → нажмите ⋯ → Сохранить
 
@@ -171,9 +161,78 @@ async def get_content_story(call: CallbackQuery):
 4. При необходимости отредактируйте.
 
 5. Нажмите Опубликовать и выберите, кто увидит историю.""",
-    )
-    await call.answer()
+        "ig": """👆🏻 <b>Как выложить историю в Instagram</b>
 
+1. Сохраните фото в Галерею.
+
+2. Откройте Instagram → нажмите (+) → История.
+
+3. Выберите фото из Галереи.
+
+4. При необходимости добавьте текст, стикеры, музыку.
+
+5. Нажмите Поделиться → выберите Моя история.""",
+        "wa": """👆🏻 <b>Как выложить статус в WhatsApp</b>
+
+1. Сохраните фото в Галерею.
+
+2. Откройте WhatsApp → вкладка Статус.
+
+3. Нажмите на значок камеры.
+
+4. Выберите фото из Галереи.
+
+5. При необходимости добавьте текст, смайлы или подпись.
+
+6. Нажмите Отправить → статус станет доступен всем вашим контактам.""",
+    },
+    "post": {
+        "tg": """<b>👆🏻 Как выложить пост в Telegram</b>
+
+1. Перешлите пост в свой телеграм-канал.
+
+2. <b>Не забудьте скрыть имя отправителя.</b>""",
+        "ig": """👆🏻 <b>Как выложить пост в Instagram</b>
+
+1. Сохраните фото в Галерею.
+
+2. Откройте Instagram → нажмите (+) → Публикация.
+
+3. Выберите фото из Галереи.
+
+4. При необходимости добавьте фильтр или отредактируйте.
+
+5. Напишите подпись, хэштеги и отметьте людей.
+
+6. Нажмите Поделиться → пост появится в профиле.""",
+    }
+}
+
+
+async def send_instructions(message: Message, obj: str, platform:str = "tg", need_replace: bool = False):
+    instruction_text = instructions.get(obj, {}).get(platform, "")
+    if not instruction_text:
+        await message.answer("Инструкция не найдена.")
+        logging.info(f"Инструкция не найдена для {obj} на {platform}")
+        return
+    
+    if need_replace:
+        await message.edit_text(
+            instruction_text,
+            reply_markup=kb.post_tips_tg(obj, platform)
+        )
+    else:
+        await message.answer(
+            instruction_text,
+            reply_markup=kb.post_tips_tg(obj, platform)
+        )
+
+@router.callback_query(F.data.startswith("p_tip:"))
+async def post_tip(call: CallbackQuery):
+    place, obj, platform = call.data.split(":")
+    await send_instructions(call.message, obj, platform, need_replace=True)
+
+@router.callback_query(F.data == "current_tip")
 @router.callback_query(F.data == "current_style")
 async def current_var(call: CallbackQuery):
     await call.answer()

@@ -1,31 +1,77 @@
 from aiogram import Router, F
-from aiogram.filters import CommandStart, Command
+from aiogram.filters import CommandStart
 from aiogram.fsm.context import FSMContext
 from aiogram.types import (
     Message,
-    CallbackQuery
+    CallbackQuery,
+    FSInputFile,
+    InputMediaPhoto
 )
 from aiogram.enums import ChatAction
 
-from loader import database
+from loader import database, admin_bot
 from Database.enums.user import UserStatus
+from Database.enums.media_files import FileTypes
 
 from .registration import start_registration, validate_phone
 from ..utils import keyboards as kb
 from ..utils.states import Edit
 from ..utils.stash import stash_img
+from ..utils.get_content import get_user_preview
+
+from aiogram.filters import CommandObject
+from typing import Optional
 
 import config
 
+import logging
+
 router = Router()
+
+async def get_post_preview(
+        message: Message,
+        post_id: int,
+        style: Optional[str] = None,
+        need_replace: bool = False
+    ):
+
+    styles = await database.get_post_styles(post_id)
+    
+
+    if not style:
+        style = styles[0]
+
+    preview = await database.get_content_files(
+        post_id=post_id,
+        style=style,
+        file_type=FileTypes.STYLE_PREVIEW
+    )
+
+    preview = preview[0]
+
+    reply_markup = reply_markup=kb.post_styles_kb(post_id, styles, style)
+    text="Выберите шаблон для генерации публикации/истории"
+
+    if not need_replace:
+        await message.answer_photo(
+            photo=preview,
+            caption=text,
+            reply_markup=reply_markup
+        )
+    else:
+        await message.edit_media(
+            media=InputMediaPhoto(media=preview, caption=text),
+            reply_markup=kb.post_styles_kb(post_id, styles, style)
+        )
 
 @router.message(Edit.name, F.text == kb.BACK_BTN)
 @router.message(Edit.email, F.text == kb.BACK_BTN)
 @router.message(Edit.phone_number, F.text == kb.BACK_BTN)
 @router.message(Edit.photo, F.text == kb.BACK_BTN)
+@router.message(Edit.approve_photo, F.text == kb.BACK_BTN)
 async def cancel_edit(message: Message, state: FSMContext):
     await state.clear()
-    await menu(message)
+    await profile(message)
 
 @router.message(Edit.name, F.text)
 async def edit_name(message: Message, state: FSMContext):
@@ -65,7 +111,7 @@ async def edit_phone_number(message: Message, state: FSMContext):
 
     phone_number = validate_phone(phone_number)
     if not phone_number:
-        await message.reply("Номер некорректный, попробуйте снова")
+        await message.reply("Некорректный номер")
         return
 
     await database.execute(
@@ -85,7 +131,7 @@ async def edit_phone_number_contact(message: Message, state: FSMContext):
     
     phone_number = validate_phone(contact.phone_number)
     if not phone_number:
-        await message.reply("Номер некорректный, попробуйте снова")
+        await message.reply("Некорректный номер")
         return
     
     await database.execute(
@@ -110,15 +156,43 @@ async def edit_photo(message: Message, state: FSMContext):
     file = await message.bot.get_file(file_id)
     await message.bot.download_file(file.file_path, destination=file_path)
 
-    tg_photo_id = await stash_img(file_path)
-    await database.execute(
-        'UPDATE users SET photo_tg = $1, updated_at = current_timestamp WHERE telegram_id = $2',
-        tg_photo_id, message.from_user.id
-    )
-    await state.clear()
-    await message.answer("Изменения сохранены", reply_markup=kb.menu_kb())
-    await profile(message)
 
+    await state.update_data(photo_source=file_path)
+
+    preview_photo = get_user_preview(file_path)
+    
+    await message.answer_photo(
+        photo=FSInputFile(path=preview_photo),
+        caption="<b>Убедитесь, что ваше лицо находится в рамке.</b>\n\n"
+        "В наших шаблонах мы будем размещать вашу фотографию, немного обрезая ее. Вы всегда сможете поменять фотографию в Профиле.",
+        reply_markup=kb.approve_photo_kb()
+    )
+    await state.set_state(Edit.approve_photo)
+
+@router.message(Edit.approve_photo, F.text == kb.CHANGE_PHOTO_BTN)    
+@router.message(Edit.approve_photo, F.text == kb.APPROVE_PHOTO_BTN)
+async def approve_photo(message: Message, state: FSMContext):
+    btn = message.text
+    if btn == kb.APPROVE_PHOTO_BTN:
+        state_data = await state.get_data()
+        tg_photo_id = await stash_img(state_data["photo_source"])
+        await database.execute(
+            'UPDATE users SET photo_tg = $1, updated_at = current_timestamp WHERE telegram_id = $2',
+            tg_photo_id, message.from_user.id
+        )
+        await state.clear()
+        await message.answer("Изменения сохранены", reply_markup=kb.menu_kb())
+        await profile(message)
+    else:
+        await message.answer(
+            text="<b>Прикрепите вашу Фотографию</b>",
+            reply_markup=kb.back_kb()
+        )
+        await state.set_state(Edit.photo)
+
+@router.message(Edit.approve_photo)
+async def approve_photo_wrong(message: Message):
+    await message.answer(text="Воспользуйтесь кнопками", reply_markup=kb.approve_photo_kb())
 
 @router.message(Edit.name)
 @router.message(Edit.email)
@@ -127,16 +201,53 @@ async def edit_photo(message: Message, state: FSMContext):
 async def wrong_input(message: Message):
     await message.answer("Недопустимый формат ввода", reply_markup=kb.back_kb())
 
+@router.message(CommandStart(deep_link=True))
+async def get_post_content_cb(message: Message, state: FSMContext, command: CommandObject):
+    payload = command.args
+    user = message.from_user
+
+    if payload.isdigit():
+        post_id = command.args
+
+        if not post_id.isdigit():
+            await message.answer("Некорректная ссылка")
+            await menu(message)
+            return
+        
+        post_id = int(post_id)
+
+        ids = await database.get_posts_id()
+        if post_id in ids:
+            await get_post_preview(message, post_id)
+        else:
+            await message.answer("Публикация не доступна")
+        return
+    else:
+        creator_id = await database.use_invite_link(payload, user.id)
+        if creator_id:
+            logging.info(f"Пользователь {user.id} добавлен в бота по ссылку от {creator_id}")
+            await message.answer(f"<b>Вы были добавлены в фокус группу для Тестирования!</b>")
+            await start_registration(message, state, user.id)
+            try:
+                await admin_bot.send_message(creator_id, f"✅ Пользователь @{user.username} ({user.id}) получил доступ к боту.")
+            except Exception as ex:
+                logging.error(f"Не получилось отправить сообщение для ({creator_id}) об активации доступа - {ex}")
+        else:
+            await message.answer(f"Не действительная ссылка")
+
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext):
     user = message.from_user
     status = await database.get_user_status(user.id)
 
+    if not status:
+        await message.answer(f"У вас нет доступа к боту.")
+        return
+
     if status == UserStatus.INVITED:
         await message.answer("<b>Вы были добавлены в фокус группу для Тестирования!</b>")
-        await database.update_user_status(user.id, UserStatus.REGISTRATION)
         # Начать регистрацию
-        await start_registration(message, state)
+        await start_registration(message, state, user.id)
     else:
         # Вызвать меню
         await menu(message)
@@ -155,10 +266,33 @@ async def menu(message: Message):
 async def lessons(message: Message):
     await message.answer(
         "<b>Вам доступно 3 видео-урока.</b>\n\n"
-        "1. Почему важен личный бренд? | 1:39\n\n"
-        "2. Как перестать бояться камеры? | 1:51\n\n"
-        "3. Как снимать стильно? | 2:08",
+        "1. Почему важен личный бренд | 1:39\n\n"
+        "2. Как перестать бояться камеры | 1:51\n\n"
+        "3. Как снимать стильно | 2:08",
         reply_markup=kb.lessons_kb()
+    )
+
+settings_text = (
+    "<b>Настройки.</b>\n\n"
+    "<b>Устройство:</b> Нам важно знать, какое у вас мобильное устройство, чтобы создать для вас комфортный интерфейс.\n\n"
+    "<b>Уведомления:</b> Мы напоминаем вам об \"окнах\", в которых вы сможет получить самый большой охват.\n\n"
+    "<i>Можно сбросить аккаунт, чтобы пройти регистрацию заново. Подписка никуда не пропадет — после повторного прохождения регистраци, доступ будет открыт.</i>"
+)
+
+@router.message(F.text == kb.SETTINGS_BTN)
+async def settings(message: Message):
+    settings = await database.get_settings(message.from_user.id)
+    await message.answer(
+        settings_text,
+        reply_markup=kb.settings_kb(settings.device, settings.notifications_enabled)
+    )
+
+@router.callback_query(F.data == "back_to:settings")
+async def settings_cb(call: CallbackQuery):
+    settings = await database.get_settings(call.from_user.id)
+    await call.message.edit_text(
+        settings_text,
+        reply_markup=kb.settings_kb(settings.device, settings.notifications_enabled)
     )
 
 @router.message(F.text == kb.TOURS_BTN)
@@ -167,7 +301,7 @@ async def tours(message: Message):
         photo="AgACAgIAAxkDAAOdaLacYDPxcVLWqLOoPX7K-_FelE8AAk34MRsbdbBJSSr8FvfJAAFfAQADAgADeQADNgQ",
         caption="""<b>Брокер-туры MR — I половина сентября 2025</b>
 
-Приглашаем на брокер-туры, выбирайте удобную дату, регистрируйтесь и добавляйте событие в свой календарь. 
+Приглашаем на брокер-туры, выбири удобную дату, зарегистрируйся и добавь событие в свой календарь. 
 
 <b>Начало всех туров — в 11:00</b>
 
@@ -192,7 +326,7 @@ async def tours(message: Message):
 @router.message(F.text == kb.CHANNEL_BTN)
 async def channel(message: Message):
     await message.answer(
-        "<b>Вам доступно 2 канала.</b>",
+        "<b>Вам доступно 3 чата.</b>",
         reply_markup=kb.channels_kb()
     )
 
@@ -208,13 +342,13 @@ async def faq(message: Message):
 - Цена зависит от выбранного тарифа.
 
 <b>Что делать, если бот не отвечает?</b>
-- Попробуйте перезапустить чат или повторить запрос через несколько минут.
+- Нужно перезапустить чат или повторить запрос через несколько минут.
 
 <b>Можно ли пользоваться ботом с телефона и компьютера?</b>
 - Да, бот доступен в Telegram на любых устройствах.
 
 <b>К кому обращаться при проблемах?</b>
-- Вы можете написать в поддержку""",
+- Наша поддержка всегда рада помочь!""",
         reply_markup=kb.faq_kb()
     )
 
@@ -226,15 +360,15 @@ async def development(message: Message):
 lessons_files = {
     "1": {
         "url": "https://t.me/POLPUGA7BC0MZZOVBC57/2",
-        "name": "ПОЧЕМУ ВАЖЕН ЛИЧНЫЙ БРЕНД?"
+        "name": "Почему личный бренд важен"
     },
     "2": {
         "url": "https://t.me/POLPUGA7BC0MZZOVBC57/3",
-        "name": "КАК ПЕРЕСТАТЬ БОЯТЬСЯ КАМЕРЫ?"
+        "name": "Как перестать бояться камеры"
     },
     "3": {
         "url": "https://t.me/POLPUGA7BC0MZZOVBC57/5",
-        "name": "КАК СНИМАТЬ СТИЛЬНО?"
+        "name": "Как снимать стильно"
     } 
 }
 
@@ -296,9 +430,6 @@ async def lesson_id(call: CallbackQuery):
     )
     await call.answer()
 
-@router.callback_query()
-async def hide_content(call: CallbackQuery):
-    await call.message.delete()
 
 @router.callback_query()
 async def development(call: CallbackQuery):

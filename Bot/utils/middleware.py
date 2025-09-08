@@ -20,6 +20,10 @@ class AccessMiddleware(BaseMiddleware):
             await event.answer("Для доступа к боту вам нужно добавить username для своего аккаунта Telegram, сделать это можно в настройках")
             return
         
+        # пропускаем команду /start (включая /start <код>)
+        if event.text and event.text.startswith("/start"):
+            return await handler(event, data)
+        
         user = await database.get_user(event.from_user.id)
         if not user:
             await event.answer("Для доступа к боту свяжитесь с разработчиками")

@@ -9,6 +9,14 @@ from .enums.user import (
 from .enums.media_files import (
     FileTypes
 )
+from .enums.settings import (
+    DeviceTypes
+)
+from .enums.invite_links import InviteStatuses
+
+from .models import (
+    Settings
+)
 
 import logging
 
@@ -74,6 +82,38 @@ class Database:
             'ON CONFLICT (telegram_id) DO UPDATE SET username = $2, updated_at = current_timestamp',
             telegram_id, username, status
         )
+        await self.add_user_to_settings(telegram_id)
+
+    async def add_user_to_settings(self, telegram_id: int):
+        await self.execute(
+            'INSERT INTO settings (telegram_id, device) VALUES ($1, $2) '
+            'ON CONFLICT (telegram_id) DO NOTHING',
+            telegram_id, DeviceTypes.IOS
+        )
+
+    async def get_settings(self, telegram_id: int) -> Optional[Settings]:
+        result = await self.execute(
+            'SELECT * FROM settings WHERE telegram_id = $1',
+            telegram_id,
+            fetchrow=True
+        )
+        if result:
+            return Settings(**result)
+        else:
+            await self.add_user_to_settings(telegram_id)
+            return await self.get_settings(telegram_id)
+
+    async def update_device(self, telegram_id: int, device: str):
+        await self.execute(
+            'UPDATE settings SET device = $1, updated_at = current_timestamp WHERE telegram_id = $2',
+            device, telegram_id
+        )
+
+    async def update_notifications(self, telegram_id: int, enabled: bool):
+        await self.execute(
+            'UPDATE settings SET notifications_enabled = $1, updated_at = current_timestamp WHERE telegram_id = $2',
+            enabled, telegram_id
+        )
 
     async def registrate_user(
         self,
@@ -106,17 +146,6 @@ class Database:
             name, telegram_id
         )
 
-    async def update_(
-        self,
-        telegram_id: int,
-        name: str
-    ):
-        await self.execute(
-            'UPDATE users SET name = $1, updated_at = current_timestamp '
-            'WHERE telegram_id = $2',
-            name, telegram_id
-        )
-
     async def get_user_data_dict(self, telegram_id: int) -> dict:
         return await self.execute(
             'SELECT username, phone_number, email, photo_source, photo_tg, name FROM users WHERE telegram_id = $1',
@@ -134,7 +163,8 @@ class Database:
     async def update_user_status(self, telegram_id: int, status: str):
         if status not in UserStatus.ALL:
             raise ValueError(f"\"{status}\" не входит в список доступных статусов")
-
+        
+        logger.info(f"Обновляем статус пользователя ({telegram_id}) - {status}")
         await self.execute(
             'UPDATE users SET status = $2 WHERE telegram_id = $1',
             telegram_id, status
@@ -211,3 +241,49 @@ class Database:
             source_path, telegram_file_id, file_type
         )
     
+    async def add_invite_link(
+        self,
+        creator_id: int,
+        code: str,
+        status: str = InviteStatuses.ACTIVE
+    ):
+        await self.execute(
+            'INSERT INTO invite_links (created_by, code, status) VALUES ($1,$2,$3)',
+            creator_id, code, status
+        )
+
+    async def is_code_exists(
+        self,
+        code
+    ) -> bool:
+        res = await self.execute(
+            'SELECT id FROM ivite_links WHERE code = $1 and status = $2',
+            code, InviteStatuses.ACTIVE,
+            fetchval=True
+        )
+
+        if res:
+            return True
+        else:
+            return False
+        
+    async def use_invite_link(
+        self,
+        code: str,
+        user_id: int
+    ) -> bool:
+        res = await self.execute(
+            '''
+            UPDATE invite_links
+            SET used_by = $1,
+                used_at = CURRENT_TIMESTAMP,
+                status = $2
+            WHERE code = $3 AND status = $4
+            RETURNING created_by
+            ''',
+            user_id, InviteStatuses.USED, code, InviteStatuses.ACTIVE,
+            fetchval=True
+        )
+
+        return res
+

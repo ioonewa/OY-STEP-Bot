@@ -1,6 +1,9 @@
 from PIL import Image, ImageDraw, ImageFont
+from typing import List
 
 from .stash import stash_img
+
+import os
 
 def overlay_photo(
         top: int,
@@ -95,8 +98,8 @@ rules = {
             },
             "photo": {
                 "top": 189,
-                "left": 182,
-                "rect_width": 720,
+                "left": 93,
+                "rect_width": 894,
                 "rect_height": 540
             },
             "text": {
@@ -126,8 +129,8 @@ rules = {
             },
             "photo": {
                 "top": 240,
-                "left": 180,
-                "rect_width": 720,
+                "left": 73,
+                "rect_width": 934,
                 "rect_height": 720
             },
             "text": {
@@ -306,6 +309,53 @@ rules = {
         }
     }
 }
+
+def get_user_preview(
+        photo_path: str,
+        radius: int = 60
+    ) -> str:
+    # Загружаем фото
+    photo = Image.open(photo_path).convert("RGBA")
+    width, height = photo.size
+    max_side = max(width, height)
+
+    # Загружаем рамку
+    frame = Image.open("content/for_bot/frame.png").convert("RGBA")
+    frame_size = round(max_side // 1.5)
+    frame = frame.resize((frame_size, frame_size), Image.LANCZOS)
+
+    # Центр фото
+    cx, cy = width // 2, height // 2
+    left = cx - frame_size // 2
+    top = cy - frame_size // 2
+    right = cx + frame_size // 2
+    bottom = cy + frame_size // 2
+
+    # 1. Накладываем затемнение на всю фотографию
+    dark = Image.new("RGBA", photo.size, (0, 0, 0, round(255 * 0.7)))
+    base = photo.copy()
+    base.alpha_composite(dark)
+
+    # 2. Вырезаем кусок из оригинала под рамку
+    crop = photo.crop((left, top, right, bottom))
+
+    # Если нужны скруглённые углы — добавляем маску
+    if radius > 0:
+        mask = Image.new("L", crop.size, 0)
+        draw = ImageDraw.Draw(mask)
+        draw.rounded_rectangle([0, 0, crop.size[0], crop.size[1]], radius=radius, fill=255)
+        base.paste(crop, (left, top), mask)
+    else:
+        base.paste(crop, (left, top))
+
+    # 3. Накладываем рамку поверх
+    base.paste(frame, (left, top), frame)
+
+    # Сохраняем результат
+    output_path = os.path.splitext(photo_path)[0] + "_preview.png"
+    base.save(output_path, "PNG")
+
+    return output_path
 
 async def get_personal_photo(
     user_data: dict,

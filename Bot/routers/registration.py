@@ -1,18 +1,23 @@
 from aiogram import Router, F
 from aiogram.types import (
-    Message
+    Message,
+    FSInputFile,
+    CallbackQuery
 )
 from aiogram.fsm.context import FSMContext
 from aiogram.enums import ChatAction
+from aiogram.filters import CommandStart
 
 from ..utils import keyboards as kb
 from ..utils.states import Registration
 from ..utils.stash import stash_img
+from ..utils.get_content import get_user_preview
 
 import re
 import os
 
 from loader import database
+from Database.enums.user import UserStatus
 
 import asyncio
 
@@ -24,13 +29,15 @@ logger = logging.getLogger(__name__)
 router = Router()
 
 # ---------- START REGISTRATION ----------
-async def start_registration(message: Message, state: FSMContext):
+async def start_registration(message: Message, state: FSMContext, user_id: int):
+    await database.update_user_status(user_id, UserStatus.REGISTRATION)
     await message.answer(
         "Пройдите регистрацию, чтобы получить доступ к:\n\n"
         "🔒 Приватному телеграм каналу с топовой информацией\n\n"
         "⭐️ Персональному контенту для ваших соцсетей\n\n"
         "🔥 Обучению: Как выйти на новый уровень продаж\n\n"
-        "🏙 Календарю брокер-туров"
+        "🏙 Календарю брокер-туров",
+        reply_markup=kb.remove_kb()
     )
     await message.bot.send_chat_action(
         chat_id=message.from_user.id,
@@ -90,11 +97,14 @@ def validate_phone(phone_raw: str) -> str | None:
 
 async def finish_registration(message: Message, state: FSMContext):
     reg_data = await state.get_data()
+
+    photo_tg = await stash_img(reg_data['photo_source'])
     user_id = message.from_user.id
 
     try:
         await database.registrate_user(
             telegram_id=user_id,
+            photo_tg=photo_tg,
             **reg_data
         )
         logger.info(f"Пользователь {user_id} успешно завершил регистрацию")
@@ -116,11 +126,13 @@ async def finish_registration(message: Message, state: FSMContext):
     )
     # Выдаем доступ в канал
     await message.answer(
-        "<b>Вам открыт доступ в приватный канал</b>",
+        "<b>Вам открыт доступ в закрытые чаты</b>",
         reply_markup=kb.channel_invite_kb()
     )
     
-
+@router.message(CommandStart())
+async def start(message: Message, state: FSMContext):
+    await start_registration(message, state, message.from_user.id)
 
 # ---------- NAME HANDLERS ----------
 @router.message(F.text, Registration.name)
@@ -207,15 +219,35 @@ async def reg_stage_5(message: Message, state: FSMContext):
     file = await message.bot.get_file(file_id)
     await message.bot.download_file(file.file_path, destination=file_path)
 
-    tg_photo_id = await stash_img(file_path)
+    await state.update_data(photo_source=file_path)
 
-    await state.update_data(
-        photo_source=file_path,
-        photo_tg=tg_photo_id
+    preview_photo = get_user_preview(file_path)
+    
+    await message.answer_photo(
+        photo=FSInputFile(path=preview_photo),
+        caption="<b>Убедитесь, что ваше лицо находится в рамке.</b>\n\n"
+        "В наших шаблонах мы будем размещать вашу фотографию, немного обрезая ее. Вы всегда сможете поменять фотографию в Профиле.",
+        reply_markup=kb.approve_photo_kb()
     )
+    await state.set_state(Registration.approve_photo)
 
-    await finish_registration(message, state)
+@router.message(Registration.approve_photo, F.text == kb.CHANGE_PHOTO_BTN)    
+@router.message(Registration.approve_photo, F.text == kb.APPROVE_PHOTO_BTN)
+async def approve_photo(message: Message, state: FSMContext):
+    btn = message.text
+    if btn == kb.APPROVE_PHOTO_BTN:
+        await finish_registration(message, state)
+    else:
+        await input_photo(message, state)
+
+@router.message(Registration.approve_photo)
+async def approve_photo_wrong(message: Message):
+    await message.answer("Воспользуйтесь кнопками над клавиатурой", reply_markup=kb.approve_photo_kb())
 
 @router.message(Registration.photo)
 async def reg_stage_5_wrong(message: Message, state: FSMContext):
     await input_photo(message, state)
+
+@router.callback_query()
+async def process_callback_query(call: CallbackQuery, state: FSMContext):
+    await call.answer("Сначала завершите регистрацию")

@@ -21,6 +21,9 @@ PRIVATE_CHANNEL = -1002907913958
 
 INVITE_LINK = "https://t.me/+Ks5JwTQGofRiOWNi"
 PUBLIC_CHANNEL = "https://t.me/oystepmediaburo"
+PRIVATE_GROUP_LINK = "https://t.me/+cSLmRvaa6uA3ZmRi"
+
+SUPPORT_LINK = "https://t.me/oybot_support"
 
 # | —
 
@@ -43,3 +46,8 @@ FIELDS_TO_EDIT = [
 # Limits:
 NAME_LIMIT = 150
 EMAIL_LIMIT = 150
+
+
+IONEWA = 752021281
+
+ADMINS = [IONEWA]

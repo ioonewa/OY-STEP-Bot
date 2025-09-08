@@ -24,6 +24,14 @@ bot = Bot(
     )
 )
 
+admin_bot = Bot(
+    token=os.getenv("ADMIN_BOT_TOKEN"),
+    default=DefaultBotProperties(
+        protect_content=True,
+        parse_mode=ParseMode.HTML
+    )
+)
+
 database = Database({
     'host': os.getenv("DB_HOST"),
     'user': os.getenv("DB_USER"),

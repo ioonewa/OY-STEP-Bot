@@ -56,7 +56,7 @@ texts = {
 
 async def main():
     await database.connect()
-            # await database.drop_tables()
+    await database.drop_tables()
     await database.create_tables()
 
     # for user in users:
@@ -69,10 +69,11 @@ async def main():
             "Black",
             "Red",
             "Blue"
-        ]
+        ],
+        text=""
     )
 
-    styles = ["Pastel"]
+    styles = ["Black", "Color", "Pastel", "White"]
     posts = []
 
     for name in ["Clos17", "Узоры", "ЖК Joice"]:
@@ -85,7 +86,7 @@ async def main():
 
         for style in styles:
             print(f"Добаляем новый стиль - {style} для {post_id}")
-            for obj in ["story"]:
+            for obj in ["post", "story"]:
                 for i in "123456":
                     if i == "6":
                         continue
