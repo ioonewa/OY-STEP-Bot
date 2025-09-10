@@ -179,8 +179,7 @@ async def get_personal_photo(
             rect_height=187,
             frame_path=out_file,
             photo_path="content/for_bot/Ellipse.png",
-            out_file=out_file,
-            corner_radius=1000
+            out_file=out_file
         )
 
     for text, params in rules_obj["text"].items():
