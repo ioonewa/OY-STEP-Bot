@@ -243,7 +243,7 @@ async def start(message: Message, state: FSMContext):
     user = message.from_user
     status = await database.get_user_status(user.id)
 
-    if not status:
+    if not status or status == UserStatus.WAITING_LIST:
         await database.add_user(user.id, user.username, UserStatus.WAITING_LIST)
         await message.answer("<b>Вы добавлены в лист ожидания.</b>\n\nСейчас Бот находится в разработке. Мы добавили вас в лист ожидания — вы получите уведомление, когда мы Бот будет запущен.")
         return
