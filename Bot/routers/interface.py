@@ -236,7 +236,7 @@ async def get_post_content_cb(message: Message, state: FSMContext, command: Comm
                 logging.error(f"Не получилось отправить сообщение для ({creator_id}) об активации доступа - {ex}")
         else:
             await database.add_user(user.id, user.username, UserStatus.WAITING_LIST)
-            await message.answer("<b>Вы добавлены в лист ожидания.</b>\n\nСейчас Бот находится в разработке. Мы добавили вас в лист ожидания — вы получите уведомление, когда мы Бот будет запущен.")
+            await message.answer("<b>Вы добавлены в лист ожидания.</b>\n\nСейчас Бот находится в разработке. Мы добавили вас в лист ожидания — вы получите уведомление, когда Бот будет запущен.")
 
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext):
@@ -245,7 +245,7 @@ async def start(message: Message, state: FSMContext):
 
     if not status or status == UserStatus.WAITING_LIST:
         await database.add_user(user.id, user.username, UserStatus.WAITING_LIST)
-        await message.answer("<b>Вы добавлены в лист ожидания.</b>\n\nСейчас Бот находится в разработке. Мы добавили вас в лист ожидания — вы получите уведомление, когда мы Бот будет запущен.")
+        await message.answer("<b>Вы добавлены в лист ожидания.</b>\n\nСейчас Бот находится в разработке. Мы добавили вас в лист ожидания — вы получите уведомление, когда Бот будет запущен.")
         return
     
     if status == UserStatus.INVITED:

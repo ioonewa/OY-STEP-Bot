@@ -29,7 +29,7 @@ class AccessMiddleware(BaseMiddleware):
         user = await database.get_user(event.from_user.id)
         if not user or user['status'] == UserStatus.WAITING_LIST:
             await database.add_user(event.from_user.id, event.from_user.username, UserStatus.WAITING_LIST)
-            await event.answer("<b>Вы добавлены в лист ожидания.</b>\n\nСейчас Бот находится в разработке. Мы добавили вас в лист ожидания — вы получите уведомление, когда мы Бот будет запущен.")
+            await event.answer("<b>Вы добавлены в лист ожидания.</b>\n\nСейчас Бот находится в разработке. Мы добавили вас в лист ожидания — вы получите уведомление, когда Бот будет запущен.")
             return
 
         return await handler(event, data)
