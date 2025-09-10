@@ -123,9 +123,32 @@ def lessons_kb() -> InlineKeyboardMarkup:
         inline_keyboard=[
             [InlineKeyboardButton(text="1. Почему важен личный бренд", callback_data="lesson:1")],
             [InlineKeyboardButton(text="2. Как перестать бояться камеры", callback_data="lesson:2")],
-            [InlineKeyboardButton(text="3. Как снимать стильно", callback_data="lesson:3")],
+            [InlineKeyboardButton(text="3. Как снимать стильно?", callback_data="lesson:3")],
         ]
     )
+
+def lesson_kb(current_lesson: str) -> InlineKeyboardMarkup:
+    lessons = {
+        "1": "1. Почему важен личный бренд",
+        "2": "2. Как перестать бояться камеры",
+        "3": "3. Как снимать стильно?"
+    }
+
+    kb = []
+    if current_lesson == "1":
+        kb = [InlineKeyboardButton(text="Следующий ➡️", callback_data="lesson:2")]
+    elif current_lesson == "2":
+        kb = [
+            InlineKeyboardButton(text="⬅️", callback_data="lesson:1"),
+            InlineKeyboardButton(text="➡️", callback_data="lesson:3")
+        ]
+    elif current_lesson == "3":
+        kb = [InlineKeyboardButton(text="⬅️ Предыдущий", callback_data="lesson:2")]
+    return InlineKeyboardMarkup(inline_keyboard=[
+        kb
+        # [InlineKeyboardButton(text="Весь список", callback_data="lessons")]
+    ])
+
 
 def faq_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=[

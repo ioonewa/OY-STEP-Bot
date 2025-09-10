@@ -5,7 +5,8 @@ from aiogram.types import (
     Message,
     CallbackQuery,
     FSInputFile,
-    InputMediaPhoto
+    InputMediaPhoto,
+    InputMediaVideo
 )
 from aiogram.enums import ChatAction
 
@@ -267,9 +268,19 @@ async def menu(message: Message):
 async def lessons(message: Message):
     await message.answer(
         "<b>Вам доступно 3 видео-урока.</b>\n\n"
-        "1. Почему важен личный бренд | 1:39\n\n"
-        "2. Как перестать бояться камеры | 1:51\n\n"
-        "3. Как снимать стильно | 2:08",
+        "1. Почему важен личный бренд? | 1:39\n\n"
+        "2. Как перестать бояться камеры? | 1:51\n\n"
+        "3. Как снимать стильно? | 2:08",
+        reply_markup=kb.lessons_kb()
+    )
+
+@router.callback_query(F.data == "lessons")
+async def lessons(call: CallbackQuery):
+    await call.message.edit_text(
+        text="<b>Вам доступно 3 видео-урока.</b>\n\n"
+        "1. Почему важен личный бренд? | 1:39\n\n"
+        "2. Как перестать бояться камеры? | 1:51\n\n"
+        "3. Как снимать стильно? | 2:08",
         reply_markup=kb.lessons_kb()
     )
 
@@ -361,15 +372,15 @@ async def development(message: Message):
 lessons_files = {
     "1": {
         "url": "https://t.me/POLPUGA7BC0MZZOVBC57/2",
-        "name": "Почему личный бренд важен"
+        "name": "1. Почему личный бренд важен?"
     },
     "2": {
         "url": "https://t.me/POLPUGA7BC0MZZOVBC57/3",
-        "name": "Как перестать бояться камеры"
+        "name": "2. Как перестать бояться камеры?"
     },
     "3": {
         "url": "https://t.me/POLPUGA7BC0MZZOVBC57/5",
-        "name": "Как снимать стильно"
+        "name": "3. Как снимать стильно?"
     } 
 }
 
@@ -420,16 +431,14 @@ async def lesson_id(call: CallbackQuery):
     if not lesson:
         await call.answer("Видео-урок недоступен")
         return
-    
-    await call.bot.send_chat_action(
-        call.from_user.id,
-        action=ChatAction.UPLOAD_VIDEO
+
+    await call.message.edit_media(
+        media=InputMediaVideo(
+            media=lesson['url'],
+            caption=lesson['name']
+        ),
+        reply_markup=kb.lesson_kb(lesson_id)
     )
-    await call.message.answer_video(
-        video=lesson['url'],
-        caption=lesson['name']
-    )
-    await call.answer()
 
 
 @router.callback_query()
