@@ -5,6 +5,8 @@ from typing import Callable, Dict, Any, Awaitable
 from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, Message
 
+from Database.enums.user import UserStatus
+
 
 class AccessMiddleware(BaseMiddleware):
     async def __call__(
@@ -25,10 +27,10 @@ class AccessMiddleware(BaseMiddleware):
             return await handler(event, data)
         
         user = await database.get_user(event.from_user.id)
-        if not user:
-            await event.answer("Для доступа к боту свяжитесь с разработчиками")
+        if not user or user['status'] == UserStatus.WAITING_LIST:
+            await database.add_user(event.from_user.id, event.from_user.username, UserStatus.WAITING_LIST)
+            await event.answer("<b>Вы добавлены в лист ожидания.</b>\n\nСейчас Бот находится в разработке. Мы добавили вас в лист ожидания — вы получите уведомление, когда мы Бот будет запущен.")
             return
-
 
         return await handler(event, data)
         

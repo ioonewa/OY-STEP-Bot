@@ -84,6 +84,11 @@ class Database:
         )
         await self.add_user_to_settings(telegram_id)
 
+    async def get_users(self) -> List[int]:
+        res = await self.execute('SELECT telegram_id FROM users', fetch=True)
+
+        return [_['telegram_id'] for _ in res]
+
     async def add_user_to_settings(self, telegram_id: int):
         await self.execute(
             'INSERT INTO settings (telegram_id, device) VALUES ($1, $2) '
@@ -287,3 +292,4 @@ class Database:
 
         return res
 
+    

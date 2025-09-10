@@ -235,7 +235,8 @@ async def get_post_content_cb(message: Message, state: FSMContext, command: Comm
             except Exception as ex:
                 logging.error(f"Не получилось отправить сообщение для ({creator_id}) об активации доступа - {ex}")
         else:
-            await message.answer(f"Не действительная ссылка")
+            await database.add_user(user.id, user.username, UserStatus.WAITING_LIST)
+            await message.answer("<b>Вы добавлены в лист ожидания.</b>\n\nСейчас Бот находится в разработке. Мы добавили вас в лист ожидания — вы получите уведомление, когда мы Бот будет запущен.")
 
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext):
@@ -243,8 +244,8 @@ async def start(message: Message, state: FSMContext):
     status = await database.get_user_status(user.id)
 
     if not status:
-        await message.answer(f"У вас нет доступа к боту.")
-        return
+        await database.add_user(user.id, user.username, UserStatus.WAITING_LIST)
+        await message.answer("<b>Вы добавлены в лист ожидания.</b>\n\nСейчас Бот находится в разработке. Мы добавили вас в лист ожидания — вы получите уведомление, когда мы Бот будет запущен.")
 
     if status == UserStatus.INVITED:
         await message.answer("<b>Вы были добавлены в фокус группу для Тестирования!</b>")

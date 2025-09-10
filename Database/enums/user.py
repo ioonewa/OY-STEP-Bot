@@ -5,12 +5,15 @@ class UserStatus():
     BANNED = "banned"
     SUBSCRIPTION_EXPIRED = "subscription_expired"
 
+    WAITING_LIST = "waiting_list"
+
     ALL = [
         INVITED,
         REGISTRATION,
         ACTIVE,
         BANNED,
-        SUBSCRIPTION_EXPIRED
+        SUBSCRIPTION_EXPIRED,
+        WAITING_LIST
     ]
 
 class UserSubscription():
