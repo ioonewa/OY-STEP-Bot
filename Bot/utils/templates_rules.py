@@ -376,7 +376,7 @@ rules = {
                 "left": 0,
                 "rect_width": 1080,
                 "rect_height": 639,
-                "mask_path": "content/templates/7/post_mask.png"
+                "mask_path": "content/templates/8/post_mask.png"
             },
             "text": {
                 "name": {
@@ -408,7 +408,7 @@ rules = {
                 "left": 0,
                 "rect_width": 1080,
                 "rect_height": 814,
-                "mask_path": "content/templates/7/story_mask.png"
+                "mask_path": "content/templates/8/story_mask.png"
             },
             "text": {},
         },
