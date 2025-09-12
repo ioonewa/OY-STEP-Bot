@@ -363,5 +363,61 @@ rules = {
             "Pastel": (0,0,0,255),
             "White": (0,0,0,255)
         }
+    },
+    "8": {
+        "post": {
+            "font": {
+                "name": "TTChocolates-Regular.ttf",
+                "size": 58,
+                "center": True
+            },
+            "photo": {
+                "top": 251,
+                "left": 0,
+                "rect_width": 1080,
+                "rect_height": 639,
+                "mask_path": "content/templates/7/post_mask.png"
+            },
+            "text": {
+                "name": {
+                    "text_x": 224,
+                    "text_y": 960
+                },
+                "phone_number": {
+                    "text_x": 224,
+                    "text_y": 1030
+                },
+                "email": {
+                    "text_x": 224,
+                    "text_y": 1100
+                },
+                "username": {
+                    "text_x": 224,
+                    "text_y": 1170
+                },
+            }
+        },
+        "story": {
+            "font": {
+                "name": "TTChocolates-Regular.ttf",
+                "size": 62,
+                "center": True
+            },
+            "photo": {
+                "top": 399,
+                "left": 0,
+                "rect_width": 1080,
+                "rect_height": 814,
+                "mask_path": "content/templates/7/story_mask.png"
+            },
+            "text": {},
+        },
+        "video": {},
+        "text_colors": {
+            "Black": (33,81,85,255),
+            "Color": (255,255,255,255),
+            "Pastel": (33,81,85,255),
+            "White": (255,255,255,255)
+        }
     }
 }
