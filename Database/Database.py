@@ -1,23 +1,17 @@
 from asyncpg import Pool, create_pool
 
-from typing import List, Optional
+from typing import List, Optional, Literal
 from datetime import datetime
 
-from .enums.user import (
-    UserStatus
-)
-from .enums.media_files import (
-    FileTypes
-)
-from .enums.settings import (
-    DeviceTypes
-)
-from .enums.invite_links import InviteStatuses
+import json
+
+from . import enums
 
 from .models import (
     Settings
 )
 
+from config import ObjParams
 import logging
 
 logger = logging.getLogger(__name__)
@@ -93,7 +87,7 @@ class Database:
         await self.execute(
             'INSERT INTO settings (telegram_id, device) VALUES ($1, $2) '
             'ON CONFLICT (telegram_id) DO NOTHING',
-            telegram_id, DeviceTypes.IOS
+            telegram_id, enums.DeviceTypes.IOS
         )
 
     async def get_settings(self, telegram_id: int) -> Optional[Settings]:
@@ -136,7 +130,7 @@ class Database:
             'WHERE telegram_id = $7',
             name, phone_number, email,
             photo_tg, photo_source,
-            UserStatus.ACTIVE,
+            enums.UserStatus.ACTIVE,
             telegram_id
         )
 
@@ -166,7 +160,7 @@ class Database:
         )
     
     async def update_user_status(self, telegram_id: int, status: str):
-        if status not in UserStatus.ALL:
+        if status not in enums.UserStatus.ALL:
             raise ValueError(f"\"{status}\" не входит в список доступных статусов")
         
         logger.info(f"Обновляем статус пользователя ({telegram_id}) - {status}")
@@ -189,7 +183,9 @@ class Database:
         text: str
     ) -> int:
         return await self.execute(
-            'INSERT INTO posts (name, styles, text) VALUES ($1,$2,$3) returning id',
+            'INSERT INTO posts (name, styles, text) VALUES ($1,$2,$3)'
+            'ON CONFLICT (name) DO UPDATE SET text = $3 '
+            'RETURNING id',
             name, styles, text,
             fetchval=True
         )
@@ -240,7 +236,9 @@ class Database:
     ):
         await self.execute(
             'INSERT INTO media_files (post_id, style, file_name, description, source_path, telegram_file_id, file_type) '
-            'VALUES ($1,$2,$3,$4,$5,$6,$7)',
+            'VALUES ($1,$2,$3,$4,$5,$6,$7) '
+            'ON CONFLICT (post_id, style, file_type, file_name) DO UPDATE SET '
+            'description = $4, source_path = $5, telegram_file_id = $6, file_type = $7',
             post_id, style,
             file_name, description,
             source_path, telegram_file_id, file_type
@@ -250,7 +248,7 @@ class Database:
         self,
         creator_id: int,
         code: str,
-        status: str = InviteStatuses.ACTIVE
+        status: str = enums.InviteStatuses.ACTIVE
     ):
         await self.execute(
             'INSERT INTO invite_links (created_by, code, status) VALUES ($1,$2,$3)',
@@ -263,7 +261,7 @@ class Database:
     ) -> bool:
         res = await self.execute(
             'SELECT id FROM ivite_links WHERE code = $1 and status = $2',
-            code, InviteStatuses.ACTIVE,
+            code, enums.InviteStatuses.ACTIVE,
             fetchval=True
         )
 
@@ -286,10 +284,33 @@ class Database:
             WHERE code = $3 AND status = $4
             RETURNING created_by
             ''',
-            user_id, InviteStatuses.USED, code, InviteStatuses.ACTIVE,
+            user_id, enums.InviteStatuses.USED, code, enums.InviteStatuses.ACTIVE,
             fetchval=True
         )
 
         return res
 
-    
+    async def add_content_rules(
+        self,
+        post_id: int,
+        post_rules: dict,
+        story_rules: dict
+    ):
+        await self.execute(
+            'INSERT INTO content_rules (post_id, post, story) VALUES ($1,$2,$3) '
+            'ON CONFLICT(post_id) DO UPDATE SET '
+            'post = $2, story = $3',
+            post_id, json.dumps(post_rules), json.dumps(story_rules)
+        )
+
+    async def get_content_rules(
+        self,
+        post_id: int,
+        obj: Literal['post', 'story']
+    ) -> ObjParams:
+        result = await self.execute(
+            f'SELECT {obj} FROM content_rules WHERE post_id = $1',
+            post_id,
+            fetchval=True
+        )
+        return json.loads(result)

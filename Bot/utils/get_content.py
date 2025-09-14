@@ -61,8 +61,8 @@ def overlay_text(
     font: str,
     font_size: int,
     color: tuple,
-    text_x: int,
-    text_y: int,
+    x: int = 0,
+    y: int = 0,
     offset_x: int = 0,
     center: bool = False,
     upper: bool = False
@@ -85,12 +85,12 @@ def overlay_text(
             text_w, text_h = bbox[2] - bbox[0], bbox[3] - bbox[1]
 
             # координаты по центру
-            text_x = ((img_w - text_w) // 2) + offset_x
+            x = ((img_w - text_w) // 2) + offset_x
 
         if upper:
             text = text.upper()
 
-        draw.text((text_x, text_y), text, font=font, fill=color)
+        draw.text((x, y), text, font=font, fill=tuple(color))
 
     # Сохраняем
     frame.save(file_path)

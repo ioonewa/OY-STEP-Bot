@@ -2,14 +2,16 @@ from aiogram import Router, F
 from aiogram.types import (
     Message,
     CallbackQuery,
-    InputMediaPhoto
+    InputMediaPhoto,
+    FSInputFile
 )
 from aiogram.utils.media_group import MediaGroupBuilder
-from aiogram.filters import CommandStart, CommandObject
 from ..utils import keyboards as kb
-from ..utils.get_content import get_personal_photo
+import os
 
-from .interface import menu
+from config import INSTRUCTIONS
+
+from content_utils import get_personal_photo, append_photo_to_video
 
 from Database.enums.media_files import FileTypes
 
@@ -21,11 +23,8 @@ import logging
 
 router = Router()
 
-# https://t.me/oystep_bot?start=post1
-# https://t.me/oystep_bot?start=2
-# https://t.me/oystep_bot?start=3
-# https://t.me/oystep_bot?start=4
-# https://t.me/oysteptest_bot?start=2
+# https://t.me/oystep_bot?start=
+# https://t.me/oysteptest_bot?start=
 
 async def get_post_preview(
         message: Message,
@@ -49,7 +48,13 @@ async def get_post_preview(
     preview = preview[0]
 
     reply_markup = reply_markup=kb.post_styles_kb(post_id, styles, style)
-    text="Выберите шаблон для генерации публикации/истории"
+    text= (
+        "<b>Генерация контента.</b>\n\n"
+        "\t1.\t\t\tВыберите понравившийся шаблон\n"
+        "\t2.\t\t\tВыбери нужный формат\n"
+        "\t2.\t\t\tОпубликуй контент у себя в соцсетях\n"
+        "🔥\t\t\t<b>Получи свежие лиды!</b>!"
+    )
 
     if not need_replace:
         await message.answer_photo(
@@ -79,7 +84,7 @@ async def change_vars(call: CallbackQuery):
 @router.callback_query(F.data.startswith("post:"))
 async def get_post_content(call: CallbackQuery):
     user_id = call.from_user.id
-    place, post_id, style  = call.data.split(":")
+    obj, post_id, style  = call.data.split(":")
     post_id = int(post_id)
 
     files = await database.get_content_files(
@@ -94,7 +99,7 @@ async def get_post_content(call: CallbackQuery):
         style=style,
         telegram_id=user_id,
         post_id=post_id,
-        obj="post"
+        obj=obj
     )
 
     files.append(personal_photo_id)
@@ -117,7 +122,7 @@ async def get_post_content(call: CallbackQuery):
 @router.callback_query(F.data.startswith("story:"))
 async def get_content_story(call: CallbackQuery):
     user_id = call.from_user.id
-    place, post_id, style  = call.data.split(":")
+    obj, post_id, style  = call.data.split(":")
     post_id = int(post_id)
 
     files = await database.get_content_files(
@@ -132,7 +137,7 @@ async def get_content_story(call: CallbackQuery):
         style=style,
         telegram_id=user_id,
         post_id=post_id,
-        obj="story"
+        obj=obj
     )
 
     files.append(personal_photo_id)
@@ -148,69 +153,39 @@ async def get_content_story(call: CallbackQuery):
     await send_instructions(call.message, "story")
     await call.answer()
 
-instructions = {
-    "story": {
-        "tg": """👆🏻 <b>Как выложить историю в Telegram</b>
+# Получение контента для Reels
+@router.callback_query(F.data.startswith("video:"))
+async def get_video(call: CallbackQuery):
+    user_id = call.from_user.id
+    obj, post_id, style  = call.data.split(":")
+    post_id = int(post_id)
 
-1. Откройте фото → нажмите ⋯ → Сохранить
+    user_data = await database.get_user_data_dict(user_id)
+    source_dir = f"videos/{user_id}"
+    os.makedirs(source_dir,exist_ok=True)
 
-2. Вверху главного экрана нажмите Моя история (+).
+    await get_personal_photo(
+        user_data=user_data,
+        style=style,
+        telegram_id=user_id,
+        post_id=post_id,
+        obj="story"
+    )
 
-3. Выберите фото из Галереи
+    out_file = await append_photo_to_video(
+        photo_path=f"photos/{user_id}/{post_id}_story_{style}.png",
+        video_path=f"content/templates/{post_id}/{style}/video.mp4",
+        output_path=f"{source_dir}/{post_id}_{obj}_{style}.png"
+    )
 
-4. При необходимости отредактируйте.
-
-5. Нажмите Опубликовать и выберите, кто увидит историю.""",
-        "ig": """👆🏻 <b>Как выложить историю в Instagram</b>
-
-1. Сохраните фото в Галерею.
-
-2. Откройте Instagram → нажмите (+) → История.
-
-3. Выберите фото из Галереи.
-
-4. При необходимости добавьте текст, стикеры, музыку.
-
-5. Нажмите Поделиться → выберите Моя история.""",
-        "wa": """👆🏻 <b>Как выложить статус в WhatsApp</b>
-
-1. Сохраните фото в Галерею.
-
-2. Откройте WhatsApp → вкладка Статус.
-
-3. Нажмите на значок камеры.
-
-4. Выберите фото из Галереи.
-
-5. При необходимости добавьте текст, смайлы или подпись.
-
-6. Нажмите Отправить → статус станет доступен всем вашим контактам.""",
-    },
-    "post": {
-        "tg": """<b>👆🏻 Как выложить пост в Telegram</b>
-
-1. Перешлите пост в свой телеграм-канал.
-
-2. <b>Не забудьте скрыть имя отправителя.</b>""",
-        "ig": """👆🏻 <b>Как выложить пост в Instagram</b>
-
-1. Сохраните фото в Галерею.
-
-2. Откройте Instagram → нажмите (+) → Публикация.
-
-3. Выберите фото из Галереи.
-
-4. При необходимости добавьте фильтр или отредактируйте.
-
-5. Напишите подпись, хэштеги и отметьте людей.
-
-6. Нажмите Поделиться → пост появится в профиле.""",
-    }
-}
+    await call.message.answer_video(video=FSInputFile(path=out_file))
+    # Место для обучалки
+    await send_instructions(call.message, obj)
+    await call.answer()
 
 
 async def send_instructions(message: Message, obj: str, platform:str = "tg", need_replace: bool = False):
-    instruction_text = instructions.get(obj, {}).get(platform, "")
+    instruction_text = INSTRUCTIONS.get(obj, {}).get(platform, "")
     if not instruction_text:
         await message.answer("Инструкция не найдена.")
         logging.info(f"Инструкция не найдена для {obj} на {platform}")
@@ -227,13 +202,13 @@ async def send_instructions(message: Message, obj: str, platform:str = "tg", nee
             reply_markup=kb.post_tips_tg(obj, platform)
         )
 
+# Получение инструкции
 @router.callback_query(F.data.startswith("p_tip:"))
 async def post_tip(call: CallbackQuery):
     place, obj, platform = call.data.split(":")
     await send_instructions(call.message, obj, platform, need_replace=True)
 
-@router.callback_query(F.data == "current_tip")
-@router.callback_query(F.data == "current_style")
+@router.callback_query(F.data.in_(["current_style", "current_tip"]))
 async def current_var(call: CallbackQuery):
     await call.answer()
 

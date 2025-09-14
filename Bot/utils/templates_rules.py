@@ -14,20 +14,20 @@ rules = {
             },
             "text": {
                 "name": {
-                    "text_x": 218,
-                    "text_y": 970
+                    "x": 218,
+                    "y": 970
                 },
                 "phone_number": {
-                    "text_x": 218,
-                    "text_y": 1020
+                    "x": 218,
+                    "y": 1020
                 },
                 "email": {
-                    "text_x": 218,
-                    "text_y": 1070
+                    "x": 218,
+                    "y": 1070
                 },
                 "username": {
-                    "text_x": 218,
-                    "text_y": 1120
+                    "x": 218,
+                    "y": 1120
                 }
             }
         },
@@ -45,20 +45,20 @@ rules = {
             },
             "text": {
                 "name": {
-                    "text_x": 220,
-                    "text_y": 1324
+                    "x": 220,
+                    "y": 1324
                 },
                 "phone_number": {
-                    "text_x": 220,
-                    "text_y": 1384
+                    "x": 220,
+                    "y": 1384
                 },
                 "email": {
-                    "text_x": 220,
-                    "text_y": 1444
+                    "x": 220,
+                    "y": 1444
                 },
                 "username": {
-                    "text_x": 220,
-                    "text_y": 1504
+                    "x": 220,
+                    "y": 1504
                 }
                 
             }
@@ -88,20 +88,20 @@ rules = {
             },
             "text": {
                 "name": {
-                    "text_x": 309,
-                    "text_y": 843
+                    "x": 309,
+                    "y": 843
                 },
                 "phone_number": {
-                    "text_x": 309,
-                    "text_y": 890
+                    "x": 309,
+                    "y": 890
                 },
                 "email": {
-                    "text_x": 309,
-                    "text_y": 935
+                    "x": 309,
+                    "y": 935
                 },
                 "username": {
-                    "text_x": 309,
-                    "text_y": 985
+                    "x": 309,
+                    "y": 985
                 }
             }
         },
@@ -119,20 +119,20 @@ rules = {
             },
             "text": {
                 "name": {
-                    "text_x": 320,
-                    "text_y": 1232
+                    "x": 320,
+                    "y": 1232
                 },
                 "phone_number": {
-                    "text_x": 320,
-                    "text_y": 1280
+                    "x": 320,
+                    "y": 1280
                 },
                 "email": {
-                    "text_x": 320,
-                    "text_y": 1325
+                    "x": 320,
+                    "y": 1325
                 },
                 "username": {
-                    "text_x": 320,
-                    "text_y": 1370
+                    "x": 320,
+                    "y": 1370
                 }
             },
         },
@@ -159,20 +159,20 @@ rules = {
             },
             "text": {
                 "name": {
-                    "text_x": 224,
-                    "text_y": 900
+                    "x": 224,
+                    "y": 900
                 },
                 "phone_number": {
-                    "text_x": 224,
-                    "text_y": 970
+                    "x": 224,
+                    "y": 970
                 },
                 "email": {
-                    "text_x": 224,
-                    "text_y": 1040
+                    "x": 224,
+                    "y": 1040
                 },
                 "username": {
-                    "text_x": 224,
-                    "text_y": 1110
+                    "x": 224,
+                    "y": 1110
                 },
             }
         },
@@ -190,20 +190,20 @@ rules = {
             },
             "text": {
                 "name": {
-                    "text_x": 160,
-                    "text_y": 1225
+                    "x": 160,
+                    "y": 1225
                 },
                 "phone_number": {
-                    "text_x": 160,
-                    "text_y": 1315
+                    "x": 160,
+                    "y": 1315
                 },
                 "email": {
-                    "text_x": 160,
-                    "text_y": 1405
+                    "x": 160,
+                    "y": 1405
                 },
                 "username": {
-                    "text_x": 160,
-                    "text_y": 1495
+                    "x": 160,
+                    "y": 1495
                 },
                 
             },
@@ -232,20 +232,20 @@ rules = {
             },
             "text": {
                 "name": {
-                    "text_x": 224,
-                    "text_y": 1000
+                    "x": 224,
+                    "y": 1000
                 },
                 "phone_number": {
-                    "text_x": 224,
-                    "text_y": 1070
+                    "x": 224,
+                    "y": 1070
                 },
                 "email": {
-                    "text_x": 224,
-                    "text_y": 1140
+                    "x": 224,
+                    "y": 1140
                 },
                 "username": {
-                    "text_x": 224,
-                    "text_y": 1210
+                    "x": 224,
+                    "y": 1210
                 },
             }
         },
@@ -264,20 +264,20 @@ rules = {
             },
             "text": {
                 "name": {
-                    "text_x": 160,
-                    "text_y": 1325
+                    "x": 160,
+                    "y": 1325
                 },
                 "phone_number": {
-                    "text_x": 160,
-                    "text_y": 1415
+                    "x": 160,
+                    "y": 1415
                 },
                 "email": {
-                    "text_x": 160,
-                    "text_y": 1505
+                    "x": 160,
+                    "y": 1505
                 },
                 "username": {
-                    "text_x": 160,
-                    "text_y": 1595
+                    "x": 160,
+                    "y": 1595
                 },
                 
             },
@@ -306,20 +306,20 @@ rules = {
             },
             "text": {
                 "name": {
-                    "text_x": 224,
-                    "text_y": 1020
+                    "x": 224,
+                    "y": 1020
                 },
                 "phone_number": {
-                    "text_x": 224,
-                    "text_y": 1090
+                    "x": 224,
+                    "y": 1090
                 },
                 "email": {
-                    "text_x": 224,
-                    "text_y": 1160
+                    "x": 224,
+                    "y": 1160
                 },
                 "username": {
-                    "text_x": 224,
-                    "text_y": 1230
+                    "x": 224,
+                    "y": 1230
                 },
             }
         },
@@ -338,20 +338,20 @@ rules = {
             },
             "text": {
                 "name": {
-                    "text_x": 160,
-                    "text_y": 1470
+                    "x": 160,
+                    "y": 1470
                 },
                 "phone_number": {
-                    "text_x": 160,
-                    "text_y": 1560
+                    "x": 160,
+                    "y": 1560
                 },
                 "email": {
-                    "text_x": 160,
-                    "text_y": 1650
+                    "x": 160,
+                    "y": 1650
                 },
                 "username": {
-                    "text_x": 160,
-                    "text_y": 1740
+                    "x": 160,
+                    "y": 1740
                 },
                 
             },
@@ -380,20 +380,20 @@ rules = {
             },
             "text": {
                 "name": {
-                    "text_x": 224,
-                    "text_y": 960
+                    "x": 224,
+                    "y": 960
                 },
                 "phone_number": {
-                    "text_x": 224,
-                    "text_y": 1030
+                    "x": 224,
+                    "y": 1030
                 },
                 "email": {
-                    "text_x": 224,
-                    "text_y": 1100
+                    "x": 224,
+                    "y": 1100
                 },
                 "username": {
-                    "text_x": 224,
-                    "text_y": 1170
+                    "x": 224,
+                    "y": 1170
                 },
             }
         },

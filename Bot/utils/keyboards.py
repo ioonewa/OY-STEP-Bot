@@ -69,9 +69,9 @@ def post_styles_kb(
 
     kb = [
         kb_styles,
-        [InlineKeyboardButton(text="Для Истории", callback_data=f"story:{file_ident}")],
-        [InlineKeyboardButton(text="Для Поста", callback_data=f"post:{file_ident}")]
-        # [InlineKeyboardButton(text="Видео", callback_data=f"video:{file_ident}")]
+        [InlineKeyboardButton(text="История", callback_data=f"story:{file_ident}")],
+        [InlineKeyboardButton(text="Пост", callback_data=f"post:{file_ident}")],
+        [InlineKeyboardButton(text="Видео", callback_data=f"video:{file_ident}")]
     ]
 
     return InlineKeyboardMarkup(inline_keyboard=kb)

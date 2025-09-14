@@ -1,45 +1,5 @@
 from loader import database
 
-from Database.enums.user import UserStatus
-from Database.enums.media_files import FileTypes
-
-from Bot.utils.stash import stash_img
-
-from asyncio import sleep
-
-from scripts.make_thumbnail import make_collage_for_folder
-
-users = [
-    {
-        "username": "ionewa",
-        "telegram_id": 752021281,
-        "status": UserStatus.INVITED
-    }
-    # {
-    #     "username": "Vitestate",
-    #     "telegram_id": 133353194,
-    #     "status": UserStatus.INVITED
-    # }
-    # ,
-    # {
-    #     "username": "Sameliya",
-    #     "telegram_id": 264976221,
-    #     "status": UserStatus.INVITED
-    # }
-    # ,
-    # {
-    #     "username": "negakaif",
-    #     "telegram_id": 128562688,
-    #     "status": UserStatus.INVITED
-    # }
-    # ,
-    # {
-    #     "username": "@eremichew",
-    #     "telegram_id": 316341973,
-    #     "status": UserStatus.INVITED
-    # }
-]
-
 texts = {
     "Clos17": """<b>Clos17</b>.
 Тихий Староваганьковский переулок, архитектура французского ар-деко, всего 26 резиденций.
@@ -51,78 +11,56 @@ texts = {
 
 Уют, статус и высокий уровень сервиса для тех, кто ценит эстетику и тишину в самом сердце Москвы.""",
     "ЖК Joice": """<b>Joice</b>.
-Комфорт, стиль и современные решения в одном проекте. Узнайте больше и найдите свой идеальный дом"""
+Комфорт, стиль и современные решения в одном проекте. Узнайте больше и найдите свой идеальный дом""",
+    "Обзор БЦ": """<b>Актуальная подборка БЦ.</b> 
+
+1. Бизнес-парк Электрод
+2. ЖК Бизнес-центр iCITY
+3. RUNOVSKY 14
+4. Бизнес-центр K-City""",
+    "HIGH LIFE": """<b>HIGH LIFE</b>.
+Премиальный квартал в Даниловском районе Москвы, всего в пяти минутах от Садового кольца.
+Проект включает 6 башен высотой до 47 этажей с панорамными окнами и видами на Кремль, Москва-Сити и набережные. Интерьеры лобби разработаны студией Jaime Beriestain, а во дворе расположен двухуровневый парк площадью 2 га с берёзовой рощей и хвойным лесом.
+Для жителей предусмотрены сервис и инфраструктура уровня пятизвёздочного отеля: SPA-зона, спорт и йога, библиотека с камином, частный кинозал и подземный паркинг.
+<blockquote><b>II квартал 2025 года</b> — cрок сдачи первых корпусов</blockquote>
+""",
+    "ЖК Лаврушенский": """<b>ЖК Лаврушинский.</b>
+Элитный клубный дом в районе Якиманка, всего в 1 км от Кремля. 
+Из большинства квартир открываются панорамные виды на Кремль, Храм Христа Спасителя и центр Москвы. 
+В проекте — три корпуса и шесть вилл, разнообразие планировок, включая пентхаусы с террасами.
+Двор-парк площадью 1,4 га — с фонтаном, прудом, ручьём, зонами отдыха, йоги и воркаута. 
+Для жителей — Clubhouse, фитнес-центр с 25-метровым бассейном, spa, детские пространства (Kid’s Lab). 
+Высота потолков от ~3,5 до 8,25 м, просторные балконы и террасы.""",
+    "ЖК UNO Соколиная Гора": """<b>ЖК UNO Соколиная Гора.</b>
+Новый проект бизнес-класса от ГК «Основа». Комплекс строится в ВАО, на улице <b>8-я Соколиной Горы</b>. До станции МЦК «Соколиная Гора» — всего несколько минут пешком.
+
+В продаже <b>642 квартиры</b> — от компактных студий до просторных четырёхкомнатных планировок.
+
+Проект включает два корпуса высотой 17–21 этаж. Есть варианты с террасами и панорамными окнами.
+
+Для жителей предусмотрен подземный паркинг и открытые стоянки. На первых этажах разместятся магазины, кафе и сервисы. Территорию благоустроят с детскими и спортивными площадками, прогулочными аллеями и зонами отдыха.
+
+<blockquote>Сдача комплекса запланирована на <b>II квартал 2027 года</b>.</blockquote>"""
 }
+
+from scripts.setup_content import setup_content
 
 async def main():
     await database.connect()
-    await database.drop_tables()
     await database.create_tables()
-
-    # for user in users:
-    #     await database.add_user(**user)
-
-    
-    post_id = await database.add_post(
-        name="Тестовый первый пост",
-        styles=[
-            "Black",
-            "Red",
-            "Blue"
-        ],
-        text=""
-    )
 
     styles = ["Black", "Color", "Pastel", "White"]
     posts = []
 
-    for name in ["Clos17", "Узоры", "ЖК Joice"]:
+    for name in ["ЖК UNO Соколиная Гора"]:
         post_id = await database.add_post(
             styles=styles,
             name=name,
-            text=texts.get(name)
+            text=texts.get(name, "")
         )
         posts.append(post_id)
 
-        for style in styles:
-            print(f"Добаляем новый стиль - {style} для {post_id}")
-            for obj in ["post", "story"]:
-                for i in "123456":
-                    if i == "6":
-                        continue
-                    print(f"Обрабатывает {post_id}/{obj}/{i}.png")
-                    root_path = f"content/templates/{post_id}/{style}/{obj}"
-                    path = f"/{i}.png"
-                    file_id = await stash_img(f"{root_path}/{path}")
-
-                    if obj == "post":
-                        file_type = FileTypes.POST_PHOTO
-                    elif obj == "story":
-                        file_type = FileTypes.STORY_PHOTO
-
-                    await database.add_media_file(
-                        post_id=post_id,
-                        style=style,
-                        file_name=f"{style}/{i}.png",
-                        description=f"Часть шаблона {obj}",
-                        source_path=f"{root_path}/{path}",
-                        telegram_file_id=file_id,
-                        file_type=file_type
-                    )
-                print(f"Ждем 60 секунду flood control")
-                await sleep(60)
-
-            thumbnail = make_collage_for_folder(root_path, f"content/templates/{post_id}/{style}.png")
-            thumbnail_file_id = await stash_img(thumbnail)
-            await database.add_media_file(
-                    post_id=post_id,
-                    style=style,
-                    file_name=f"{style}.png",
-                    description="Превью шаблона",
-                    source_path=f"content/templates/{post_id}/{style}.png",
-                    telegram_file_id=thumbnail_file_id,
-                    file_type=FileTypes.STYLE_PREVIEW
-                )
+    await setup_content(styles, posts)
 
 
 import asyncio

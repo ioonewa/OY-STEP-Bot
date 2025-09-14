@@ -4,11 +4,14 @@ from .posts import posts_sql
 from .setting import settings_sql
 from .invites import invites_sql
 
+from .content_rules import content_rules_sql
+
 tables_sql = [
     users_table_sql,
     posts_sql,
     media_files_sql,
     settings_sql,
 
-    invites_sql
+    invites_sql,
+    content_rules_sql
 ]
