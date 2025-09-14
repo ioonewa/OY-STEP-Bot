@@ -315,7 +315,7 @@ async def tours(message: Message):
         photo="AgACAgIAAxkDAAOdaLacYDPxcVLWqLOoPX7K-_FelE8AAk34MRsbdbBJSSr8FvfJAAFfAQADAgADeQADNgQ",
         caption="""<b>Брокер-туры MR — I половина сентября 2025</b>
 
-Приглашаем на брокер-туры, выбири удобную дату, зарегистрируйся и добавь событие в свой календарь. 
+Приглашаем на брокер-туры, выбери удобную дату, зарегистрируйся и добавь событие в свой календарь. 
 
 <b>Начало всех туров — в 11:00</b>
 

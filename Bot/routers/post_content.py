@@ -51,9 +51,9 @@ async def get_post_preview(
     text= (
         "<b>Генерация контента.</b>\n\n"
         "\t1.\t\t\tВыберите понравившийся шаблон\n"
-        "\t2.\t\t\tВыбери нужный формат\n"
-        "\t2.\t\t\tОпубликуй контент у себя в соцсетях\n"
-        "🔥\t\t\t<b>Получи свежие лиды!</b>!"
+        "\t2.\t\t\tВыберите нужный формат\n"
+        "\t2.\t\t\tОпубликуйте контент у себя в соцсетях\n"
+        "🔥\t\t\t<b>Получите свежие лиды!</b>!"
     )
 
     if not need_replace:
@@ -175,7 +175,7 @@ async def get_video(call: CallbackQuery):
     out_file = await append_photo_to_video(
         photo_path=f"photos/{user_id}/{post_id}_story_{style}.png",
         video_path=f"content/templates/{post_id}/{style}/video.mp4",
-        output_path=f"{source_dir}/{post_id}_{obj}_{style}.png"
+        output_path=f"{source_dir}/{post_id}_{obj}_{style}.mp4"
     )
 
     await call.message.answer_video(video=FSInputFile(path=out_file))
