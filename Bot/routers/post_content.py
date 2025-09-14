@@ -84,107 +84,119 @@ async def change_vars(call: CallbackQuery):
 # Получение контента для Пост
 @router.callback_query(F.data.startswith("post:"))
 async def get_post_content(call: CallbackQuery):
-    user_id = call.from_user.id
-    obj, post_id, style  = call.data.split(":")
-    post_id = int(post_id)
+    try:
+        user_id = call.from_user.id
+        obj, post_id, style  = call.data.split(":")
+        post_id = int(post_id)
 
-    files = await database.get_content_files(
-        post_id=post_id,
-        style=style,
-        file_type=FileTypes.POST_PHOTO
-    )
+        files = await database.get_content_files(
+            post_id=post_id,
+            style=style,
+            file_type=FileTypes.POST_PHOTO
+        )
 
-    user_data = await database.get_user_data_dict(user_id)
-    personal_photo_id = await get_personal_photo(
-        user_data=user_data,
-        style=style,
-        telegram_id=user_id,
-        post_id=post_id,
-        obj=obj
-    )
+        user_data = await database.get_user_data_dict(user_id)
+        personal_photo_id = await get_personal_photo(
+            user_data=user_data,
+            style=style,
+            telegram_id=user_id,
+            post_id=post_id,
+            obj=obj
+        )
 
-    files.append(personal_photo_id)
+        files.append(personal_photo_id)
 
-    caption = await database.get_post_text(post_id)
+        caption = await database.get_post_text(post_id)
 
-    media_group = MediaGroupBuilder(
-        caption=caption + f"\n\nНапиши мне, и я помогу выбрать лучшую квартиру: @{user_data['username']}",
-        media=[
-            InputMediaPhoto(media=file) for file in files
-        ]
-    )
+        media_group = MediaGroupBuilder(
+            caption=caption + f"\n\nНапиши мне, и я помогу выбрать лучшую квартиру: @{user_data['username']}",
+            media=[
+                InputMediaPhoto(media=file) for file in files
+            ]
+        )
 
-    await call.message.answer_media_group(media=media_group.build(), protect_content=False)
-    # Место для обучалки
-    await send_instructions(call.message, "post")
-    await call.answer()
+        await call.message.answer_media_group(media=media_group.build(), protect_content=False)
+        # Место для обучалки
+        await send_instructions(call.message, "post")
+        await call.answer()
+    except Exception as ex:
+        logging.error(f"Ошибка при получение формата {user_id} ({call.data}) - {ex}")
+        await call.answer("Формат поста недоступен")
 
 # Получение контента для Истории
 @router.callback_query(F.data.startswith("story:"))
 async def get_content_story(call: CallbackQuery):
-    user_id = call.from_user.id
-    obj, post_id, style  = call.data.split(":")
-    post_id = int(post_id)
+    try:
+        user_id = call.from_user.id
+        obj, post_id, style  = call.data.split(":")
+        post_id = int(post_id)
 
-    files = await database.get_content_files(
-        post_id=post_id,
-        style=style,
-        file_type=FileTypes.STORY_PHOTO
-    )
+        files = await database.get_content_files(
+            post_id=post_id,
+            style=style,
+            file_type=FileTypes.STORY_PHOTO
+        )
 
-    user_data = await database.get_user_data_dict(user_id)
-    personal_photo_id = await get_personal_photo(
-        user_data=user_data,
-        style=style,
-        telegram_id=user_id,
-        post_id=post_id,
-        obj=obj
-    )
+        user_data = await database.get_user_data_dict(user_id)
+        personal_photo_id = await get_personal_photo(
+            user_data=user_data,
+            style=style,
+            telegram_id=user_id,
+            post_id=post_id,
+            obj=obj
+        )
 
-    files.append(personal_photo_id)
+        files.append(personal_photo_id)
 
-    media_group = MediaGroupBuilder(
-        media=[
-            InputMediaPhoto(media=file) for file in files
-        ]
-    )
+        media_group = MediaGroupBuilder(
+            media=[
+                InputMediaPhoto(media=file) for file in files
+            ]
+        )
 
-    await call.message.answer_media_group(media=media_group.build(), protect_content=False)
-    # Место для обучалки
-    await send_instructions(call.message, "story")
-    await call.answer()
+        await call.message.answer_media_group(media=media_group.build(), protect_content=False)
+        # Место для обучалки
+        await send_instructions(call.message, "story")
+        await call.answer()
+    except Exception as ex:
+        logging.error(f"Ошибка при получение формата {user_id} ({call.data}) - {ex}")
+        await call.answer("Формат историй недоступен")
 
 # Получение контента для Reels
 @router.callback_query(F.data.startswith("video:"))
 async def get_video(call: CallbackQuery):
-    user_id = call.from_user.id
-    obj, post_id, style  = call.data.split(":")
-    post_id = int(post_id)
+    try:
+        user_id = call.from_user.id
+        obj, post_id, style  = call.data.split(":")
+        post_id = int(post_id)
 
-    user_data = await database.get_user_data_dict(user_id)
-    source_dir = f"videos/{user_id}"
-    os.makedirs(source_dir,exist_ok=True)
+        user_data = await database.get_user_data_dict(user_id)
+        source_dir = f"videos/{user_id}"
+        os.makedirs(source_dir,exist_ok=True)
 
-    await get_personal_photo(
-        user_data=user_data,
-        style=style,
-        telegram_id=user_id,
-        post_id=post_id,
-        obj="story"
-    )
+        await get_personal_photo(
+            user_data=user_data,
+            style=style,
+            telegram_id=user_id,
+            post_id=post_id,
+            obj="story"
+        )
 
-    await call.bot.send_chat_action(chat_id=user_id, action=ChatAction.UPLOAD_VIDEO)
+        await call.bot.send_chat_action(chat_id=user_id, action=ChatAction.UPLOAD_VIDEO)
 
-    out_file = await append_photo_to_video(
-        photo_path=f"photos/{user_id}/{post_id}_story_{style}.png",
-        video_path=f"content/templates/{post_id}/{style}/video.mp4",
-        output_path=f"{source_dir}/{post_id}_{obj}_{style}.mp4"
-    )
+        out_file = await append_photo_to_video(
+            photo_path=f"photos/{user_id}/{post_id}_story_{style}.png",
+            video_path=f"content/templates/{post_id}/{style}/video.mp4",
+            output_path=f"{source_dir}/{post_id}_{obj}_{style}.mp4"
+        )
 
-    await call.message.answer_video(video=FSInputFile(path=out_file), protect_content=False)
-    # Место для обучалки
-    await send_instructions(call.message, obj)
-    await call.answer()
+        await call.message.answer_video(video=FSInputFile(path=out_file), protect_content=False)
+        # Место для обучалки
+        await send_instructions(call.message, obj)
+        await call.answer()
+    except Exception as ex:
+        logging.error(f"Ошибка при получение формата {user_id} ({call.data}) - {ex}")
+        await call.answer("Видео формат недоступен")
 
 
 async def send_instructions(message: Message, obj: str, platform:str = "tg", need_replace: bool = False):
