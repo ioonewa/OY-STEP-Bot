@@ -25,6 +25,18 @@ _semaphore = asyncio.Semaphore(_DEFAULT_WORKERS)
 # Логгер
 logger = logging.getLogger(__name__)
 
+# --- добавленные константы и uncached reader ---
+CACHEABLE_PREFIXES = (
+    "content" ,       # шаблоны, маски, рамки, шрифты
+    "content/for_bot",
+    "content/templates",
+)
+
+def _read_file_bytes_uncached(path: str) -> bytes:
+    """Читаем байты прямо с диска без кеша (для изменяемых файлов, например out_file)."""
+    with open(path, "rb") as f:
+        return f.read()
+
 # -------------------------
 # КЕШИРОВАНИЕ (уменьшает операции чтения с диска)
 # - кешируем байты файлов (templates, masks, fonts)
@@ -32,15 +44,24 @@ logger = logging.getLogger(__name__)
 # -------------------------
 @lru_cache(maxsize=256)
 def _read_file_bytes(path: str) -> bytes:
-    """Кешируем содержимое файла в байтах. Быстрее чем многократное открытие на диске."""
     with open(path, "rb") as f:
         return f.read()
+
+def _is_cacheable_path(path: str) -> bool:
+    """
+    Решение: кешируем только статические ресурсы в content/*;
+    все остальные пути (photos/, temporary файлы) читаем напрямую.
+    """
+    p = Path(path)
+    # нормализуем первый сегмент
+    if not p.parts:
+        return False
+    first = p.parts[0]
+    return first in ("content",)  # можно расширить при необходимости
 
 @lru_cache(maxsize=64)
 def _font_bytes(font_path: str) -> bytes:
     return _read_file_bytes(font_path)
-
-# -------------------------
 # Утилиты для работы с изображениями (synchronous) — их вызывает executor
 # -------------------------
 def _open_image_from_bytes_rgba(data: bytes) -> Image.Image:
@@ -49,9 +70,17 @@ def _open_image_from_bytes_rgba(data: bytes) -> Image.Image:
     return img.convert("RGBA")
 
 def _open_image_from_path_rgba(path: str) -> Image.Image:
-    """Открываем изображение, используя кеш байтов (не возвращаем общий объект, а fresh Image)."""
-    data = _read_file_bytes(path)
+    """
+    Открываем изображение. Если путь попадает в кешируемые директории — читаем через cached `_read_file_bytes`.
+    Если это изменяемый/временный файл (например photos/...), читаем напрямую (uncached),
+    чтобы не получить "старую" версию из кэша.
+    """
+    if _is_cacheable_path(path):
+        data = _read_file_bytes(path)
+    else:
+        data = _read_file_bytes_uncached(path)
     return _open_image_from_bytes_rgba(data)
+
 
 def _ensure_parent_dir(file_path: str) -> None:
     Path(file_path).parent.mkdir(parents=True, exist_ok=True)
@@ -176,7 +205,8 @@ def _overlay_text_sync(
         x = ((img_w - text_w) // 2) + offset_x
 
     # Сам рендер текста (fill принимает RGBA или RGB)
-    draw.text((x, y), text, font=font_obj, fill=color)
+    print(f"Данные для рисования ({x}, {y}) - {text}, {font_obj}, {tuple(color)}")
+    draw.text((x, y), text, font=font_obj, fill=tuple(color))
 
     # Сохраняем (перезаписываем тот же файл)
     _ensure_parent_dir(file_path)
@@ -246,7 +276,6 @@ async def _run_blocking(fn, *args, **kwargs):
         # run_in_executor принимает (executor, func, *args)
         return await loop.run_in_executor(_executor, lambda: fn(*args, **kwargs))
 
-
 # Публичные async функции (совместимы с оригинальным интерфейсом)
 async def overlay_photo(
     top: int,
@@ -286,7 +315,6 @@ async def overlay_text(
         text, file_path, font, font_size, color, x, y, offset_x, center, upper, fonts_base_dir
     )
 
-
 async def get_user_preview(photo_path: str, radius: int = 60) -> str:
     return await _run_blocking(_get_user_preview_sync, photo_path, radius)
 
@@ -305,14 +333,13 @@ async def get_personal_photo(
     Замечание: stash_img в вашем коде — async; используем await.
     """
     frame_path = f"content/templates/{post_id}/{style}/{obj}/6.png"
-    out_file = f"photos/{telegram_id}/{post_id}_{obj}{style}.png"
+    out_file = f"photos/{telegram_id}/{post_id}_{obj}_{style}.png"
 
     # Убедимся, что директория есть (асинхронно это быстрый вызов; IO внутри executor)
     Path(out_file).parent.mkdir(parents=True, exist_ok=True)
 
     rules = await database.get_content_rules(int(post_id), obj)
-    font = rules["font"]
-    font['font_size'] = font['size']
+    base_font = rules["font"]
 
     # Накладываем фотографию
     await overlay_photo(
@@ -340,18 +367,27 @@ async def get_personal_photo(
         data = user_data.get(text_key)
         if not data:
             continue
-
         if text_key == "username":
             data = f"@{data}"
+
+        # собираем словарь заново, не мутируя base_font
+        font_args = {
+            "font":  base_font["name"],
+            "font_size": base_font["size"],
+            "color": base_font["color"][style],
+            "center": base_font.get('center', False),
+            "offset_x": base_font.get('offset_x', 0),
+            "upper": base_font.get('upper', False)
+        }
 
         await overlay_text(
             text=data,
             file_path=out_file,
-            **font,
-            **params
+            **font_args,
+            **params,
         )
 
-    # Кешируем фотографию для telegram
+    # # Кешируем фотографию для telegram
     file_id = await stash_img(out_file)
     return file_id
 

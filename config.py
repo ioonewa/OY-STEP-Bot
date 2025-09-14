@@ -145,7 +145,13 @@ content_rules: Dict[str, Content] = {
             "font": {
                 "name": "TTChocolates-Bold.ttf",
                 "size": 56,
-                "upper": True
+                "upper": True,
+                "color": {
+                    "Black": (255,255,255,255),
+                    "Color": (255,255,255,255),
+                    "Pastel": (0,0,0,255),
+                    "White": (0,0,0,255)
+                }
             },
             "photo": {
                 "top": 240,
@@ -181,7 +187,7 @@ content_rules: Dict[str, Content] = {
                 "size": 42,
                 "center": False,
                 "offset_x": 20,
-                "font": {
+                "color": {
                     "Black": (235,50,35,255),
                     "Color": (235,50,35,255),
                     "Pastel": (235,50,35,255),
@@ -217,7 +223,13 @@ content_rules: Dict[str, Content] = {
         "story": {
             "font": {
                 "name": "TTChocolates-Regular.ttf",
-                "size": 44
+                "size": 44,
+                "color": {
+                    "Black": (235,50,35,255),
+                    "Color": (235,50,35,255),
+                    "Pastel": (235,50,35,255),
+                    "White": (235,50,35,255)
+                }
             },
             "photo": {
                 "top": 236,
@@ -288,7 +300,13 @@ content_rules: Dict[str, Content] = {
             "font": {
                 "name": "TTChocolates-Regular.ttf",
                 "size": 62,
-                "center": True
+                "center": True,
+                "color": {
+                    "Black": (255,255,255,255),
+                    "Color": (255,255,255,255),
+                    "Pastel": (255,255,255,255),
+                    "White": (0,0,0,255)
+                }
             },
             "photo": {
                 "top": 577,
@@ -360,7 +378,13 @@ content_rules: Dict[str, Content] = {
             "font": {
                 "name": "TTChocolates-Regular.ttf",
                 "size": 62,
-                "center": True
+                "center": True,
+                "color": {
+                    "Black": (255,255,255,255),
+                    "Color": (0,0,0,255),
+                    "Pastel": (0,0,0,255),
+                    "White": (0,0,0,255)
+                }
             },
             "photo": {
                 "top": 300,
@@ -433,7 +457,13 @@ content_rules: Dict[str, Content] = {
             "font": {
                 "name": "TTChocolates-Regular.ttf",
                 "size": 62,
-                "center": True
+                "center": True,
+                "font": {
+                    "Black": (0,0,0,255),
+                    "Color": (0,0,0,255),
+                    "Pastel": (0,0,0,255),
+                    "White": (0,0,0,255)
+                }
             },
             "photo": {
                 "top": 478,
@@ -459,7 +489,6 @@ content_rules: Dict[str, Content] = {
                     "x": 160,
                     "y": 1740
                 },
-                
             },
         },
     },
@@ -506,7 +535,13 @@ content_rules: Dict[str, Content] = {
             "font": {
                 "name": "TTChocolates-Regular.ttf",
                 "size": 62,
-                "center": True
+                "center": True,
+                "color": {
+                    "Black": (33,81,85,255),
+                    "Color": (255,255,255,255),
+                    "Pastel": (33,81,85,255),
+                    "White": (255,255,255,255)
+                }
             },
             "photo": {
                 "top": 399,
@@ -516,15 +551,86 @@ content_rules: Dict[str, Content] = {
                 "mask_path": "content/templates/8/story_mask.png"
             },
             "text": {}
-        },
+        }
     }
 }
 
 content_rules["9"] = {
     "post": {
-        "photo": {},
-        "font": {},
-        "text": {}
+            "font": {
+                "name": "TTChocolates-Regular.ttf",
+                "size": 54,
+                "center": True,
+                "upper": True,
+                "color": {
+                    "Black": (0,0,0,255),
+                    "Color": (0,0,0,255),
+                    "Pastel": (255,255,255,255),
+                    "White": (255,255,255,255)
+                }
+            },
+            "photo": {
+                "top": 242,
+                "left": 0,
+                "rect_width": 1080,
+                "rect_height": 628,
+            },
+            "text": {
+                "name": {
+                    "x": 224,
+                    "y": 980
+                },
+                "phone_number": {
+                    "x": 224,
+                    "y": 1050
+                },
+                "email": {
+                    "x": 224,
+                    "y": 1120
+                },
+                "username": {
+                    "x": 224,
+                    "y": 1190
+                },
+            }
+    },
+    "story": {
+        "font": {
+            "name": "TTChocolates-Regular.ttf",
+            "size": 64,
+            "center": True,
+            "upper": True,
+            "color": {
+                "Black": (0,0,0,255),
+                "Color": (0,0,0,255),
+                "Pastel": (255,255,255,255),
+                "White": (255,255,255,255)
+            }
+        },
+        "photo": {
+            "top": 395,
+            "left": 0,
+            "rect_width": 1080,
+            "rect_height": 800
+        },
+        "text": {
+                "name": {
+                    "x": 160,
+                    "y": 1300
+                },
+                "phone_number": {
+                    "x": 160,
+                    "y": 1370
+                },
+                "email": {
+                    "x": 160,
+                    "y": 1440
+                },
+                "username": {
+                    "x": 160,
+                    "y": 1510
+                },
+            }
     }
 } 
 
