@@ -6,6 +6,7 @@ from aiogram.types import (
     FSInputFile
 )
 from aiogram.utils.media_group import MediaGroupBuilder
+from aiogram.enums import ChatAction
 from ..utils import keyboards as kb
 import os
 
@@ -172,13 +173,15 @@ async def get_video(call: CallbackQuery):
         obj="story"
     )
 
+    await call.bot.send_chat_action(chat_id=user_id, action=ChatAction.UPLOAD_VIDEO)
+
     out_file = await append_photo_to_video(
         photo_path=f"photos/{user_id}/{post_id}_story_{style}.png",
         video_path=f"content/templates/{post_id}/{style}/video.mp4",
         output_path=f"{source_dir}/{post_id}_{obj}_{style}.mp4"
     )
 
-    await call.message.answer_video(video=FSInputFile(path=out_file))
+    await call.message.answer_video(video=FSInputFile(path=out_file), protect_content=False)
     # Место для обучалки
     await send_instructions(call.message, obj)
     await call.answer()
