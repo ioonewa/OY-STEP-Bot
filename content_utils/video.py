@@ -6,12 +6,16 @@ from typing import List, Dict, Optional
 import asyncio
 import json
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 def photos_to_video(
     photos: List[Dict[str, float]],
     output_path: str,
     reference_video: str | None = None,
     fps: int | None = None,
-    size: tuple[int, int] | None = (1080, 1920),
+    size: tuple[int, int] | None = (1920, 1080),
 ) -> str:
     """
     Склеивает список фотографий в один mp4-файл.
@@ -152,6 +156,8 @@ async def append_photo_to_video(
     v_fps, width, height = await _get_video_params(video_path)
     if fps is None:
         fps = v_fps
+
+    logger.info(f"Исходный размер для видер - {width} x {height}")
 
     # 2️⃣ Генерируем mp4 из фото
     await _run_ffmpeg(
