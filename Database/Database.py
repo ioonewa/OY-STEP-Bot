@@ -79,7 +79,7 @@ class Database:
         await self.add_user_to_settings(telegram_id)
 
     async def get_users(self) -> List[int]:
-        res = await self.execute('SELECT telegram_id FROM users', fetch=True)
+        res = await self.execute('SELECT telegram_id FROM users WHERE status = $1', enums.UserStatus.ACTIVE, fetch=True)
 
         return [_['telegram_id'] for _ in res]
 

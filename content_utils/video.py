@@ -195,3 +195,239 @@ async def append_photo_to_video(
     tmp_list.unlink(missing_ok=True)
 
     return str(out)
+
+
+async def append_photo_with_fade(
+    photo_path: str,
+    video_path: str,
+    output_path: str,
+    photo_duration: float = 4.0,
+    fade_duration: float = 1.0,
+) -> str:
+    """
+    Конец video_path + фото с кросс-фейдом (затухание/появление).
+    """
+    out = Path(output_path)
+    tmp_photo = out.with_suffix(".fade_photo.mp4")
+
+    # получаем параметры исходного видео
+    v_fps, width, height = await _get_video_params(video_path)
+
+    # фото -> ролик
+    await _run_ffmpeg(
+        "ffmpeg", "-y",
+        "-loop", "1",
+        "-t", str(photo_duration + fade_duration),  # запас для xfade
+        "-i", photo_path,
+        "-vf", f"scale={width}:{height}",
+        "-r", str(v_fps),
+        "-c:v", "libx264", "-pix_fmt", "yuv420p",
+        str(tmp_photo)
+    )
+
+    # узнаём длительность исходного видео
+    probe = await _run_ffmpeg(
+        "ffprobe", "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "default=nk=1:nw=1",
+        video_path
+    )
+    vid_dur = float(probe.decode().strip())
+
+    # xfade: начинаем за fade_duration до конца
+    await _run_ffmpeg(
+        "ffmpeg", "-y",
+        "-i", video_path,
+        "-i", str(tmp_photo),
+        "-filter_complex",
+        f"[0:v][1:v]xfade=transition=fade:duration={fade_duration}:offset={vid_dur - fade_duration}[v]",
+        "-map", "[v]",
+        "-map", "0:a?",  # если есть звук – копируем
+        "-c:v", "libx264", "-pix_fmt", "yuv420p",
+        str(out)
+    )
+
+    tmp_photo.unlink(missing_ok=True)
+    return str(out)
+
+async def append_photo_with_blink(
+    photo_path: str,
+    video_path: str,
+    output_path: str,
+    photo_duration: float = 4.0,
+    fade_duration: float = 1.0,
+) -> str:
+    """
+    Добавляет фото в конец видео с эффектом «моргания»:
+    исходное видео плавно гаснет в чёрный, затем из чёрного появляется фото.
+    """
+    out = Path(output_path)
+    tmp_photo = out.with_suffix(".blink_photo.mp4")
+
+    # параметры исходного видео
+    v_fps, width, height = await _get_video_params(video_path)
+
+    # фото -> ролик (запас для fade)
+    await _run_ffmpeg(
+        "ffmpeg", "-y",
+        "-loop", "1",
+        "-t", str(photo_duration + fade_duration),
+        "-i", photo_path,
+        "-vf", f"scale={width}:{height}",
+        "-r", str(v_fps),
+        "-c:v", "libx264", "-pix_fmt", "yuv420p",
+        str(tmp_photo)
+    )
+
+    # длительность исходного видео
+    probe = await _run_ffmpeg(
+        "ffprobe", "-v", "error",
+        "-show_entries", "format=duration",
+        "-of", "default=nk=1:nw=1",
+        video_path
+    )
+    vid_dur = float(probe.decode().strip())
+
+    # xfade: fadeblack — затухание в чёрный и появление из чёрного
+    await _run_ffmpeg(
+        "ffmpeg", "-y",
+        "-i", video_path,
+        "-i", str(tmp_photo),
+        "-filter_complex",
+        (
+            f"[0:v][1:v]xfade=transition=fadeblack:"
+            f"duration={fade_duration}:"
+            f"offset={vid_dur - fade_duration}[v]"
+        ),
+        "-map", "[v]",
+        "-map", "0:a?",
+        "-c:v", "libx264", "-pix_fmt", "yuv420p",
+        str(out)
+    )
+
+    tmp_photo.unlink(missing_ok=True)
+    return str(out)
+
+
+async def add_music_segment(
+    video_path: str,
+    music_path: str,
+    output_path: str,
+    start: float = 0.0,
+    duration: float | None = None,
+    music_volume: float = 1.0,
+) -> str:
+    """
+    Накладывает музыку на видео.
+    - start: секунда, с которой начинается музыка.
+    - duration: длительность накладываемого фрагмента; если None — до конца ролика.
+    - music_volume: множитель громкости музыки (1.0 = без изменений).
+    Возвращает путь к output_path или выбрасывает ошибку с понятным текстом.
+    """
+    out = Path(output_path)
+
+    # 1) Получаем длительность видео
+    try:
+        raw = await _run_ffmpeg(
+            "ffprobe", "-v", "error",
+            "-show_entries", "format=duration",
+            "-of", "default=nk=1:nw=1",
+            video_path
+        )
+    except Exception as e:
+        raise RuntimeError(f"Не удалось прочитать длительность видео ({video_path}): {e}")
+    try:
+        video_duration = float(raw.decode().strip())
+    except Exception as e:
+        raise RuntimeError(f"Некорректная длительность в ffprobe output для {video_path}: {e}")
+
+    if start < 0:
+        raise ValueError("start не может быть отрицательным")
+    if start > video_duration:
+        raise ValueError("start выходит за пределы длительности видео")
+
+    # 2) Вычисляем реальную длительность наложения
+    if duration is None:
+        duration = video_duration - start
+    else:
+        # если указанная длительность выходит за конец — обрезаем до конца
+        if start + duration > video_duration:
+            duration = max(0.0, video_duration - start)
+
+    if duration <= 0:
+        raise ValueError("Нечего накладывать: вычисленная duration <= 0")
+
+    # 3) Понимаем — есть ли у видео аудио (streams array non-empty)
+    try:
+        raw = await _run_ffmpeg(
+            "ffprobe", "-v", "error",
+            "-select_streams", "a",
+            "-show_streams",
+            "-of", "json",
+            video_path
+        )
+        video_streams = json.loads(raw)
+        video_has_audio = bool(video_streams.get("streams"))
+    except Exception as e:
+        # на этом этапе лучше считать, что аудио нет, но логируем/выбрасываем более конкретную ошибку
+        raise RuntimeError(f"ffprobe failed checking audio streams for {video_path}: {e}")
+
+    # 4) Узнаём количество каналов у музыки (нужно для корректного adelay)
+    try:
+        raw = await _run_ffmpeg(
+            "ffprobe", "-v", "error",
+            "-select_streams", "a:0",
+            "-show_entries", "stream=channels",
+            "-of", "json",
+            music_path
+        )
+        music_info = json.loads(raw)
+        if music_info.get("streams"):
+            music_channels = int(music_info["streams"][0].get("channels", 1) or 1)
+        else:
+            music_channels = 1
+    except Exception:
+        # если не удалось — предполагаем минимум (1)
+        music_channels = 1
+
+    # 5) Строим filter_complex
+    start_ms = int(round(start * 1000))
+    dur_txt = f"{duration:.3f}"
+    # подготовка delays в формате "ms|ms|ms" для количества каналов
+    delays = "|".join(str(start_ms) for _ in range(music_channels)) if start_ms > 0 else ""
+    # цепочка для музыки: обрезаем -> синхронизируем тайминги -> регулируем громкость -> (если нужно) задержка
+    music_chain = f"[1:a]atrim=0:{dur_txt},asetpts=PTS-STARTPTS,volume={music_volume}"
+    if start_ms > 0:
+        music_chain += f",adelay={delays}"
+    music_chain += "[m]"  # временная метка для музыки
+
+    if video_has_audio:
+        # смешиваем оригинальную дорожку и музыку
+        # [0:a] - оригинал, [m] - подготовленная музыка -> amix -> [a]
+        filter_complex = f"{music_chain};[0:a][m]amix=inputs=2:dropout_transition=0[a]"
+        audio_map = "[a]"
+    else:
+        # видео не имеет аудио — просто используем подготовленную музыку как итоговую дорожку
+        filter_complex = music_chain
+        audio_map = "[m]"
+
+    # 6) Собираем и запускаем ffmpeg
+    cmd = [
+        "ffmpeg", "-y",
+        "-i", video_path,
+        "-i", music_path,
+        "-filter_complex", filter_complex,
+        "-map", "0:v",
+        "-map", audio_map,
+        "-c:v", "copy",      # видео не перекодируем
+        "-c:a", "aac", "-b:a", "192k",
+        str(out)
+    ]
+
+    try:
+        await _run_ffmpeg(*cmd)
+    except Exception as e:
+        # даём контекст — полезно при отладке ffmpeg stderr
+        raise RuntimeError(f"ffmpeg failed while adding music to {video_path}: {e}")
+
+    return str(out)

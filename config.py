@@ -634,6 +634,83 @@ content_rules["9"] = {
     }
 } 
 
+content_rules["10"] = {
+    "post": {
+            "font": {
+                "name": "TTChocolates-Regular.ttf",
+                "size": 54,
+                "upper": True,
+                "color": {
+                    "Black": (255,255,255,255),
+                    "Color": (255,255,255,255),
+                    "Pastel": (0,0,0,255),
+                    "White": (0,0,0,255)
+                }
+            },
+            "photo": {
+                "top": 151,
+                "left": 165,
+                "rect_width": 742,
+                "rect_height": 568,
+            },
+            "text": {
+                "name": {
+                    "x": 141,
+                    "y": 960
+                },
+                "phone_number": {
+                    "x": 141,
+                    "y": 1030
+                },
+                "email": {
+                    "x": 141,
+                    "y": 1100
+                },
+                "username": {
+                    "x": 141,
+                    "y": 1170
+                },
+            }
+    },
+    "story": {
+        "font": {
+            "name": "TTChocolates-Regular.ttf",
+            "size": 54,
+            "upper": True,
+            "color": {
+                "Black": (255,255,255,255),
+                "Color": (255,255,255,255),
+                "Pastel": (0,0,0,255),
+                "White": (0,0,0,255)
+            }
+        },
+        "photo": {
+            "top": 437,
+            "left": 165,
+            "rect_width": 742,
+            "rect_height": 568
+        },
+        "text": {
+                "name": {
+                    "x": 141,
+                    "y": 1300
+                },
+                "phone_number": {
+                    "x": 141,
+                    "y": 1370
+                },
+                "email": {
+                    "x": 141,
+                    "y": 1440
+                },
+                "username": {
+                    "x": 141,
+                    "y": 1510
+                },
+            }
+    }
+} 
+
 INSTRUCTIONS = {
     "video": {
         "tg": """👆🏻 <b>Как выложить историю в Telegram.</b>

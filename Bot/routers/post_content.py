@@ -12,7 +12,7 @@ import os
 
 from config import INSTRUCTIONS
 
-from content_utils import get_personal_photo, append_photo_to_video
+from content_utils import get_personal_photo, append_photo_with_blink, add_music_segment
 
 from Database.enums.media_files import FileTypes
 
@@ -54,7 +54,7 @@ async def get_post_preview(
         "\t1.\t\t\tВыберите понравившийся шаблон\n"
         "\t2.\t\t\tВыберите нужный формат\n"
         "\t2.\t\t\tОпубликуйте контент у себя в соцсетях\n"
-        "🔥\t\t\t<b>Получите свежие лиды!</b>!"
+        "🔥\t\t\t<b>Получите свежие лиды!</b>"
     )
 
     if not need_replace:
@@ -184,10 +184,16 @@ async def get_video(call: CallbackQuery):
 
         await call.bot.send_chat_action(chat_id=user_id, action=ChatAction.UPLOAD_VIDEO)
 
-        out_file = await append_photo_to_video(
+        out_file = await append_photo_with_blink(
             photo_path=f"photos/{user_id}/{post_id}_story_{style}.png",
             video_path=f"content/templates/{post_id}/{style}/video.mp4",
-            output_path=f"{source_dir}/{post_id}_{obj}_{style}.mp4"
+            output_path=f"{source_dir}/{post_id}_{obj}_{style}.mp4",
+            fade_duration=0.3
+        )
+        out_file = await add_music_segment(
+            video_path=out_file,
+            music_path=f"content/templates/{post_id}/{style}/music.mp3",
+            output_path=f"{source_dir}/{post_id}_{obj}_{style}_final.mp4"
         )
 
         await call.message.answer_video(video=FSInputFile(path=out_file), protect_content=False)
