@@ -15,7 +15,7 @@ def photos_to_video(
     output_path: str,
     reference_video: str | None = None,
     fps: int | None = None,
-    size: tuple[int, int] | None = (1920, 1080),
+    size: tuple[int, int] | None = (1080, 1920),
 ) -> str:
     """
     Склеивает список фотографий в один mp4-файл.
