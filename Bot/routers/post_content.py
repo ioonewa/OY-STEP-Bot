@@ -189,7 +189,7 @@ async def get_video(call: CallbackQuery):
             photo_path=f"photos/{user_id}/{post_id}_story_{style}.png",
             video_path=f"content/templates/{post_id}/{style}/video.mp4",
             output_path=f"{source_dir}/{post_id}_{obj}_{style}.mp4",
-            fade_duration=0.3
+            fade_duration=0.5
         )
         out_file = await add_music_segment(
             video_path=out_file,
