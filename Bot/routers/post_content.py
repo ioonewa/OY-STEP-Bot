@@ -166,6 +166,7 @@ async def get_content_story(call: CallbackQuery):
 @router.callback_query(F.data.startswith("video:"))
 async def get_video(call: CallbackQuery):
     try:
+        await call.message.answer("Подождите немного, генерация видео может занимать до 2х минут")
         user_id = call.from_user.id
         obj, post_id, style  = call.data.split(":")
         post_id = int(post_id)
