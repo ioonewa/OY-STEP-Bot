@@ -9,6 +9,7 @@ from aiogram.types import (
     InputMediaVideo
 )
 from aiogram.enums import ChatAction
+from aiogram.types.link_preview_options import LinkPreviewOptions
 
 from loader import database, admin_bot
 from Database.enums.user import UserStatus
@@ -388,7 +389,8 @@ async def tours(message: Message):
 30.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=qrM4AyGwEfcODKW8mSt4D">DAR ЖК «Solos»</a>
 30.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=YE0-CdtuVv3BeREjEq161">Capital Alliance Бизнес-центр «Avium»</a>
 30.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=rPJYosqKy-EMqAbKAA9PI">FORMA ЖК «Moments»</a>
-30.09 | 12:00 <a href="https://t.me/TrendAgent_Education_bot?start=cvbBzLsR26xCQG8Rizrvj">ST Michael ЖК «Квартал Серебряный Бор» + ЖК «Зорге 9»</a>"""
+30.09 | 12:00 <a href="https://t.me/TrendAgent_Education_bot?start=cvbBzLsR26xCQG8Rizrvj">ST Michael ЖК «Квартал Серебряный Бор» + ЖК «Зорге 9»</a>""",
+        link_preview_options=LinkPreviewOptions(is_disabled=True)
     )
 
 
