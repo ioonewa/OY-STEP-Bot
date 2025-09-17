@@ -65,9 +65,9 @@ async def get_post_preview(
             reply_markup=kb.post_styles_kb(post_id, styles, style)
         )
 
-@router.message(F.text == kb.CONTENT_PLAN_BTN)
-async def content_plan(message: Message):
-    await message.answer("<b>Контент-план</b>\n", reply_markup=kb.content_plan_kb())
+# @router.message(F.text == kb.CONTENT_PLAN_BTN)
+# async def content_plan(message: Message):
+#     await message.answer("<b>Контент-план</b>\n", reply_markup=kb.content_plan_kb())
 
 @router.message(Edit.name, F.text == kb.BACK_BTN)
 @router.message(Edit.email, F.text == kb.BACK_BTN)
@@ -316,7 +316,7 @@ async def settings_cb(call: CallbackQuery):
 @router.message(F.text == kb.TOURS_BTN)
 async def tours(message: Message):
     await message.answer(
-        caption="""<b>Брокер-туры сентябрь 2025</b>
+        """<b>Брокер-туры сентябрь 2025</b>
 
 <b>🔥 В ближайшее время</b>
 18.09 | 10:00 <a href="https://t.me/TrendAgent_Education_bot?start=_W2t_RfIlDm9y4cPgvivt">Автобусный тур ГК ФСК</a>
