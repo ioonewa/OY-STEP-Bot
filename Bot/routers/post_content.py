@@ -194,16 +194,15 @@ async def get_video(call: CallbackQuery):
         out_file = await add_music_segment(
             video_path=out_file,
             music_path=f"content/templates/{post_id}/{style}/music.mp3",
-            output_path=f"{source_dir}/{post_id}_{obj}_{style}_final.mp4"
+            output_path=f"{source_dir}/{post_id}_{obj}_{style}_final.mp4",
+            start=189 if post_id == "11" else 0
         )
 
         await call.message.answer_video(video=FSInputFile(path=out_file), protect_content=False)
         # Место для обучалки
         await send_instructions(call.message, obj)
-        await call.answer()
     except Exception as ex:
         logging.error(f"Ошибка при получение формата {user_id} ({call.data}) - {ex}")
-        await call.answer("Видео формат недоступен")
 
 
 async def send_instructions(message: Message, obj: str, platform:str = "tg", need_replace: bool = False):
