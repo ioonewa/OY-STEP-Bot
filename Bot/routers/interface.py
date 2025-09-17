@@ -65,6 +65,10 @@ async def get_post_preview(
             reply_markup=kb.post_styles_kb(post_id, styles, style)
         )
 
+@router.message(F.text == kb.CONTENT_PLAN_BTN)
+async def content_plan(message: Message):
+    await message.answer("<b>Контент-план</b>\n", reply_markup=kb.content_plan_kb())
+
 @router.message(Edit.name, F.text == kb.BACK_BTN)
 @router.message(Edit.email, F.text == kb.BACK_BTN)
 @router.message(Edit.phone_number, F.text == kb.BACK_BTN)
@@ -311,31 +315,82 @@ async def settings_cb(call: CallbackQuery):
 
 @router.message(F.text == kb.TOURS_BTN)
 async def tours(message: Message):
-    await message.answer_photo(
-        photo="AgACAgIAAxkDAAOdaLacYDPxcVLWqLOoPX7K-_FelE8AAk34MRsbdbBJSSr8FvfJAAFfAQADAgADeQADNgQ",
-        caption="""<b>Брокер-туры MR — I половина сентября 2025</b>
+    await message.answer(
+        caption="""<b>Брокер-туры сентябрь 2025</b>
 
-Приглашаем на брокер-туры, выбери удобную дату, зарегистрируйся и добавь событие в свой календарь. 
+<b>🔥 В ближайшее время</b>
+18.09 | 10:00 <a href="https://t.me/TrendAgent_Education_bot?start=_W2t_RfIlDm9y4cPgvivt">Автобусный тур ГК ФСК</a>
+18.09 | 10:15 <a href="https://t.me/TrendAgent_Education_bot?start=vMVCNM05ZWhyDwD2JnkIS">Автобусная экскурсия INGRAD</a>
+18.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=AmavlpQh26lhS7lkiN3DN">3SGroup ЖК «Voice Towers»</a>
+18.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=IbZM1oWOc54b4fFe--gT9">ЖК «Бархат»</a>
+18.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=59w3cC0fX7ZvjwKEUAes8">РКС Девелопмент ЖК «Insider»</a>
+18.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=d8IF7TXfj3kwVPbvtr65Z">Талан ЖК «Injoy»</a>
+18.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=SQvW3uUOyGV3Taym0BNrj">Среда Все ЖК</a>
+18.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=5k3m1yMjVUkESS7PaVfOw">СЗ Сияние ЖК «Клубный Квартал 33»</a>
+18.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=hLX_r3C51CiZBC1nySSiQ">AFI Development ЖК «AFI PARK Воронцовский»</a>
+18.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=OJT8OhEz0pWvblbmqwGml">Коммерческая недвижимость DOGMA «Публицист и EVO»</a>
+18.09 | 12:00 <a href="https://t.me/TrendAgent_Education_bot?start=ZqsJs9ABZUt8YL1q34c4z">ГК Град ЖК «Домодедово парк»</a>
+18.09 | 12:00 <a href="https://t.me/TrendAgent_Education_bot?start=DUX2EGhgRqL2jVsxsDojj">Страна.Девелопмент ЖК «Страна.Озерная»</a>
+19.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=_8NZ8QLdIIhclYg8_ssLm">Брусника ЖК «Издание»</a>
+19.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=QGiOhJH5O5CRb3vR8WPSZ">Кортрос ЖК «ILOVE»</a>
+19.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=0BS93LJOP2ZO2qvH5arQd">ГК Родина ЖК «Родина Переделкино»</a>
+19.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=NclhFSB_fiQcXwDEaIJiz">ЭЛИТА-ЭКО Клубный дом D'ORO MILLE</a>
+19.09 | 12:00 <a href="https://t.me/TrendAgent_Education_bot?start=DCGoHI6qFnXNxBu7wdsqo">TOUCH ЖК «Champine»</a>
 
-<b>Начало всех туров — в 11:00</b>
+<b>22 Сентября</b>
+22.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=fJn7F-W8RaCslbLjK_qy4">УПК РОСТ ЖК «Новое Летово»</a>
 
-<b>Регистрация</b>
-🔘 <a href="https://open-list--mr-group.timepad.ru/event/3481076/">МЫ.С</a>
-🔘 <a href="https://open-list--mr-group.timepad.ru/event/3067699/">JOIS</a>
-🔘 <a href="https://open-list--mr-group.timepad.ru/event/3107158/">City Bay</a>
-🔘 <a href="https://open-list--mr-group.timepad.ru/event/3481020/">CITYZEN</a>
-🔘 <a href="https://open-list--mr-group.timepad.ru/event/3107001/">МИRА</a>
-🔘 <a href="https://open-list--mr-group.timepad.ru/event/3107038/">У Реки. Эко Видное 2.0</a>
-🔘 <a href="https://open-list--mr-group.timepad.ru/event/3155215/">Symphony 34</a>
-🔘 <a href="https://open-list--mr-group.timepad.ru/event/3155210/">VEER / SET</a>
-🔘 <a href="https://open-list--mr-group.timepad.ru/event/3067669/">SLAVA</a>
-🔘 <a href="https://open-list--mr-group.timepad.ru/event/3067707/">Метрополия</a>
-🔘 <a href="https://open-list--mr-group.timepad.ru/event/3067629/">MOD</a>
-🔘 <a href="https://open-list--mr-group.timepad.ru/event/3107071/">Famous</a>
-🔘 <a href="https://open-list--mr-group.timepad.ru/event/3107086/">Селигер Сити</a>
-🔘 <a href="https://open-list--mr-group.timepad.ru/event/3531754/">One</a>
-"""
+<b>23 Сентября</b>
+23.09 | 10:00 <a href="https://t.me/TrendAgent_Education_bot?start=0PGdJHi2_Sk_dxencG23x">ГК Эталон Проекты застройщика</a>
+23.09 | 10:30 <a href="https://t.me/TrendAgent_Education_bot?start=SqtlQwjWQMnbKEmIWvl7X">КСТ ЖК «Riga Holiday»</a>
+23.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=55oVzQYXZRH_shUzYzJip">Unikey ЖК «Новые смыслы»</a>
+23.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=lmFsePqfNeZ8eaBwfVVsz">Sezar Group ЖК «Sezar City»</a>
+23.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=2F3a4BdgxZIbl7q-gjDwl">DAR ЖК «Rakurs»</a>
+23.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=4x8MylfDUB9HhLOJcCdMC">FORMA ЖК «Portland»</a>
+23.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=dzmW2oU3yL7-VaOwprT2K">Талан ЖК «INJOY»</a>
+23.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=Ek8v4vzD4m-NYJeAWcxOS">Capital Alliance Бизнес-центр «Avium»</a>
+23.09 | 11:30 <a href="https://t.me/TrendAgent_Education_bot?start=gYxolPZeV0viYON1d5GlZ">СЗ Горакс ЖК «Smart Garden» в Новой Москве</a>
+23.09 | 12:00 <a href="https://t.me/TrendAgent_Education_bot?start=R5DYdSY1AYFo7FMQHZvDo">ГК Сумма Элементов ЖК «Дом Дау»</a>
+23.09 | 12:00 <a href="https://t.me/TrendAgent_Education_bot?start=UU58bSXidbOgg8mGwjm33">TOUCH ЖК «Дом Горизонтов»</a>
+
+<b>24 Сентября</b>
+24.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=W32Go19tmqfM73iGxJxru">LEGENDA ЖК «Северный Порт». Путь Клиента</a>
+24.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=0T_OytxFyEhouo8We9Ush">Plus Development ЖК «Акценты»</a>
+24.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=QZmDfvqKqzFa_KjuWNL4A">Upside Development ЖК «Данилов Дом»</a>
+24.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=X2WTpv9OLZBhObXdcWOY9">Офисная и торговая недвижимость FORMA</a>
+24.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=DCPJSlcOHwVdYLyWwJgDD">Plato ЖК «Кутузов Сити»</a>
+24.09 | 12:00 <a href="https://t.me/TrendAgent_Education_bot?start=f775Qb6iTNXLwnFmOADSn">СЗ Сияние ЖК «Клубный Квартал 33»</a>
+24.09 | 12:00 <a href="https://t.me/TrendAgent_Education_bot?start=PSeiI-tmZX7P6FYvPQRJT">Кортрос ЖК «Ultima City»</a>
+
+<b>25 Сентября</b>
+25.09 | 10:00 <a href="https://t.me/TrendAgent_Education_bot?start=PS80O7b9mQ6pCUwmTWB1N">ГК Эталон Проекты застройщика</a>
+25.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=_HgSh-JiYGLpeIP9Jom0p">Талан ЖК «Injoy»</a>
+25.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=t-zQdB0wBOoMBG0WrvtD_">Sezar Group ЖК «Рассказово»</a>
+25.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=0Hz8eoQ1OQHCfJHwjXcZu">РКС Девелопмент ЖК «Insider»</a>
+25.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=G9Vc2f6AFOiqFc6cZ4TYM">AFI Development ЖК «Резиденция архитекторов»</a>
+25.09 | 12:00 <a href="https://t.me/TrendAgent_Education_bot?start=pRjyW6wX99wXb_Il3jDmk">Страна.Девелопмент ЖК «Republic»</a>
+
+<b>26 Сентября</b>
+26.09 | 10:50 <a href="https://t.me/TrendAgent_Education_bot?start=lxELjFhQMNwnqBTxSFTxA">Автобусная экскурсия Донстрой</a>
+26.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=2bXL1S3xHxjCSUgHNZaYm">ГК Родина ЖК «СОЮЗ»</a>
+26.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=5WpuXgBfSoItYxAMUDu4F">Unicom Development КП «Резиденция Булатово»</a>
+26.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=J5hUhklL8R5m8VCI7d6Kv">October Group ЖК «King&Sons»</a>
+26.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=G2zHP_YY7DImkKgI5dW0d">Торговая недвижимость ГК А101</a>
+26.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=HLnv9f_c9bUHpSIO46NF9">Мангазея ЖК «Мангазея на Речном»</a>
+26.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=LmQ0Bh6M2Ze8Ro4hW_UD_">Брусника ЖК «Первый квартал»</a>
+26.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=oZ_nFdZW2IPV8CLGS1yBG">GloraX. Москва ЖК «GloraX Premium Белорусская»</a>
+
+<b>29 Сентября</b>
+29.09 | 10:00 <a href="https://t.me/TrendAgent_Education_bot?start=4K7mW0raB8hYqBW4NmHFw">Экскурсия Realt.One</a>
+
+<b>30 Сентября</b>
+30.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=adiwVAQy5FSVbvWMmXJgE">Sezar Group ЖК «Full House»</a>
+30.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=qrM4AyGwEfcODKW8mSt4D">DAR ЖК «Solos»</a>
+30.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=YE0-CdtuVv3BeREjEq161">Capital Alliance Бизнес-центр «Avium»</a>
+30.09 | 11:00 <a href="https://t.me/TrendAgent_Education_bot?start=rPJYosqKy-EMqAbKAA9PI">FORMA ЖК «Moments»</a>
+30.09 | 12:00 <a href="https://t.me/TrendAgent_Education_bot?start=cvbBzLsR26xCQG8Rizrvj">ST Michael ЖК «Квартал Серебряный Бор» + ЖК «Зорге 9»</a>"""
     )
+
 
 @router.message(F.text == kb.CHANNEL_BTN)
 async def channel(message: Message):
