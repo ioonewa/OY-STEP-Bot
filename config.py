@@ -679,7 +679,7 @@ content_rules["10"] = {
             "upper": True,
             "color": {
                 "Black": (255,255,255,255),
-                "Color": (255,255,255,255),
+                "Color": (0,0,0,255),
                 "Pastel": (0,0,0,255),
                 "White": (0,0,0,255)
             }
@@ -710,6 +710,164 @@ content_rules["10"] = {
             }
     }
 } 
+
+content_rules["11"] = {
+    "post": {
+            "font": {
+                "name": "TTChocolates-Regular.ttf",
+                "size": 54,
+                "upper": True,
+                "center": True,
+                "color": {
+                    "Black": (255,255,255,255),
+                    "Color": (0,0,0,255),
+                    "Pastel": (0,0,0,255),
+                    "White": (0,0,0,255)
+                }
+            },
+            "photo": {
+                "top": 160,
+                "left": 110,
+                "rect_width": 860,
+                "rect_height": 540,
+            },
+            "text": {
+                "name": {
+                    "x": 141,
+                    "y": 960
+                },
+                "phone_number": {
+                    "x": 141,
+                    "y": 1030
+                },
+                "email": {
+                    "x": 141,
+                    "y": 1100
+                },
+                "username": {
+                    "x": 141,
+                    "y": 1170
+                },
+            }
+    },
+    "story": {
+        "font": {
+            "name": "TTChocolates-Regular.ttf",
+            "size": 64,
+            "upper": True,
+            "center": True,
+            "color": {
+                    "Black": (255,255,255,255),
+                    "Color": (0,0,0,255),
+                    "Pastel": (0,0,0,255),
+                    "White": (0,0,0,255)
+                }
+        },
+        "photo": {
+            "top": 252,
+            "left": 110,
+            "rect_width": 860,
+            "rect_height": 842
+        },
+        "text": {
+                "name": {
+                    "x": 141,
+                    "y": 1450
+                },
+                "phone_number": {
+                    "x": 141,
+                    "y": 1520
+                },
+                "email": {
+                    "x": 141,
+                    "y": 1590
+                },
+                "username": {
+                    "x": 141,
+                    "y": 1660
+                },
+            }
+    }
+}
+
+
+content_rules["12"] = {
+    "post": {
+            "font": {
+                "name": "TTChocolates-Regular.ttf",
+                "size": 54,
+                "center": True,
+                "color": {
+                    "Black": (255,255,255,255),
+                    "Color": (255,255,255,255),
+                    "Pastel": (0,0,0,255),
+                    "White": (0,0,0,255)
+                }
+            },
+            "photo": {
+                "top": 55,
+                "left": 0,
+                "rect_width": 1080,
+                "rect_height": 710,
+            },
+            "text": {
+                "name": {
+                    "x": 141,
+                    "y": 960
+                },
+                "phone_number": {
+                    "x": 141,
+                    "y": 1030
+                },
+                "email": {
+                    "x": 141,
+                    "y": 1100
+                },
+                "username": {
+                    "x": 141,
+                    "y": 1170
+                },
+            }
+    },
+    "story": {
+        "font": {
+            "name": "TTChocolates-Regular.ttf",
+            "size": 68,
+            "center": True,
+            "color": {
+                "Black": (255,255,255,255),
+                "Color": (255,255,255,255),
+                "Pastel": (0,0,0,255),
+                "White": (0,0,0,255)
+            }
+        },
+        "photo": {
+            "top": 154,
+            "left": 0,
+            "rect_width": 1080,
+            "rect_height": 844
+        },
+        "text": {
+                "name": {
+                    "x": 141,
+                    "y": 1350
+                },
+                "phone_number": {
+                    "x": 141,
+                    "y": 1420
+                },
+                "email": {
+                    "x": 141,
+                    "y": 1490
+                },
+                "username": {
+                    "x": 141,
+                    "y": 1560
+                },
+            }
+    }
+} 
+
 
 INSTRUCTIONS = {
     "video": {
@@ -804,4 +962,11 @@ INSTRUCTIONS = {
 
 6. Нажмите Поделиться → пост появится в профиле.""",
     }
+}
+
+
+cp_mode = {
+    "market_capture": [
+        
+    ],
 }

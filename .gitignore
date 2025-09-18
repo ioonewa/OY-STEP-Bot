@@ -211,3 +211,9 @@ tests/
 photos/
 logs/
 videos/
+
+
+test.py
+test_content.py
+test
+scripts

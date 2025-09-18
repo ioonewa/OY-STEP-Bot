@@ -196,7 +196,7 @@ async def get_video(call: CallbackQuery):
                 video_path=out_file,
                 music_path=f"content/templates/{post_id}/{style}/music.mp3",
                 output_path=f"{source_dir}/{post_id}_{obj}_{style}_final.mp4",
-                start=189 if post_id == "11" else 0
+                start=189 if post_id in ["11","12"] else 0
             )
 
         await call.message.answer_video(video=FSInputFile(path=out_file), protect_content=False)
