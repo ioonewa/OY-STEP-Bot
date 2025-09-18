@@ -45,10 +45,18 @@ async def start_registration(message: Message, state: FSMContext, user_id: int):
 
     media_group = MediaGroupBuilder(
         media=[
-            InputMediaDocument(media="documents/Политика_конфиденциальности_ОФИС_БРОКЕРА.pdf"),
-            InputMediaDocument(media="documents/Пользовательское_соглашение_ОФИС_БРОКЕРА.pdf"),
-            InputMediaDocument(media="documents/Публичная_оферта_ОФИС_БРОКЕРА.pdf"),
-            InputMediaDocument(media="documents/Согласие_на_обработку_персональных_данных_ОФИС_БРОКЕРА.pdf"),
+            InputMediaDocument(
+                media=FSInputFile("documents/Политика_конфиденциальности_ОФИС_БРОКЕРА.pdf")
+            ),
+            InputMediaDocument(
+                media=FSInputFile("documents/Пользовательское_соглашение_ОФИС_БРОКЕРА.pdf")
+            ),
+            InputMediaDocument(
+                media=FSInputFile("documents/Публичная_оферта_ОФИС_БРОКЕРА.pdf")
+            ),
+            InputMediaDocument(
+                media=FSInputFile("documents/Согласие_на_обработку_персональных_данных_ОФИС_БРОКЕРА.pdf")
+            ),
         ]
     )
 
