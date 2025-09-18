@@ -81,6 +81,11 @@ def post_styles_kb(
 
     return InlineKeyboardMarkup(inline_keyboard=kb)
 
+def reg_kb() -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(inline_keyboard=[
+        [InlineKeyboardButton(text="Я согласен с политикой конфиденциальности", callback_data="reg:agree")]
+    ])
+
 def back_kb() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         resize_keyboard=True,
