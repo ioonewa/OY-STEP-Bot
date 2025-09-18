@@ -191,12 +191,13 @@ async def get_video(call: CallbackQuery):
             output_path=f"{source_dir}/{post_id}_{obj}_{style}.mp4",
             fade_duration=0.5
         )
-        out_file = await add_music_segment(
-            video_path=out_file,
-            music_path=f"content/templates/{post_id}/{style}/music.mp3",
-            output_path=f"{source_dir}/{post_id}_{obj}_{style}_final.mp4",
-            start=189 if post_id == "11" else 0
-        )
+        if post_id in ["10", "11", "12"]:
+            out_file = await add_music_segment(
+                video_path=out_file,
+                music_path=f"content/templates/{post_id}/{style}/music.mp3",
+                output_path=f"{source_dir}/{post_id}_{obj}_{style}_final.mp4",
+                start=189 if post_id == "11" else 0
+            )
 
         await call.message.answer_video(video=FSInputFile(path=out_file), protect_content=False)
         # Место для обучалки
