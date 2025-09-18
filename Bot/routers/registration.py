@@ -66,7 +66,7 @@ async def start_registration(message: Message, state: FSMContext, user_id: int):
         reply_markup=kb.reg_kb()
     )
 
-@router.callback_query(F.text == "reg:agree")
+@router.callback_query(F.data == "reg:agree")
 async def approve_reg(call: CallbackQuery, state: FSMContext):
     await call.message.edit_reply_markup()
     await input_name(call.message, state)
