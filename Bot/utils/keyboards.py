@@ -5,7 +5,7 @@ from aiogram.types import (
     ReplyKeyboardMarkup,
     ReplyKeyboardRemove
 )
-from typing import List, Optional
+from typing import List, Optional, Literal
 
 from Database.enums.settings import DeviceTypes
 
@@ -15,6 +15,8 @@ LESSONS_BTN = "Обучение"
 TOURS_BTN = "Брокер-туры"
 SETTINGS_BTN = "Настройки"
 PROFILE_BTN = "Профиль"
+
+CONTENT_PLAN_BTN = "⭐️ Контент-план"
 
 CHANNEL_BTN = "Чаты"
 FAQ_BTN = "Поддержка"
@@ -37,6 +39,9 @@ def remove_kb() -> ReplyKeyboardRemove:
 def menu_kb() -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(
         keyboard=[
+            [
+                KeyboardButton(text=CONTENT_PLAN_BTN)
+            ],
             [
                 KeyboardButton(text=TOURS_BTN),
                 KeyboardButton(text=LESSONS_BTN),
@@ -178,6 +183,7 @@ def settings_kb(
         inline_keyboard=[
             [InlineKeyboardButton(text=PHONE_IOS if device == DeviceTypes.IOS else PHONE_ANDROID, callback_data="set:switch_device")],
             [InlineKeyboardButton(text=NOTIFICATIONS_ON if notifications_status else NOTIFICATIONS_OFF, callback_data="set:switch_notif")],
+            [InlineKeyboardButton(text="Документы", callback_data="show_docs")],
             [InlineKeyboardButton(text="Сбросить аккаунт", callback_data="reset_account")]
         ]
     )
@@ -215,3 +221,38 @@ def post_tips_tg(
         kb.append(InlineKeyboardButton(text=wa_btn, callback_data=wa_cb))
 
     return InlineKeyboardMarkup(inline_keyboard=[kb])
+
+cp_modes = [
+    "Захват рынка",
+    "Умеренный",
+    "💤 Выкл"
+]
+
+cp_time = [
+    "Утро",
+    "Вечер",
+    "Универсальный"
+]
+
+def content_plan_kb(
+    need_platforms: bool = False,
+    on_edit: bool = False 
+) -> InlineKeyboardMarkup:
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Захват рынка", callback_data=f"сp_mode")],
+        [InlineKeyboardButton(text="Утро", callback_data=f"cp_time")]
+    ]
+
+    if need_platforms:
+        for plat in ["wa", "ig", "tg"]:
+            inline_keyboard.append([
+                InlineKeyboardButton(text=f"{config.PLATFORMS_MAP.get(plat)}", callback_data=f"cp_plat:{plat}")
+            ])
+    else:
+        inline_keyboard.append([[InlineKeyboardButton(text="Выбрать соцсети", callback_data=f"cp_platforms")]])
+
+    if on_edit:
+        inline_keyboard.append([InlineKeyboardButton(text="Сохранить", callback_data=f"cp_save")])
+        inline_keyboard.append([InlineKeyboardButton(text="Отменить", callback_data=f"cp_cancel")])
+
+    return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)    

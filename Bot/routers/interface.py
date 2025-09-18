@@ -6,9 +6,12 @@ from aiogram.types import (
     CallbackQuery,
     FSInputFile,
     InputMediaPhoto,
-    InputMediaVideo
+    InputMediaVideo,
+    InputMediaDocument
 )
 from aiogram.enums import ChatAction
+
+from aiogram.utils.media_group import MediaGroupBuilder
 from aiogram.types.link_preview_options import LinkPreviewOptions
 
 from loader import database, admin_bot
@@ -20,6 +23,7 @@ from ..utils import keyboards as kb
 from ..utils.states import Edit
 from ..utils.stash import stash_img
 from ..utils.get_content import get_user_preview
+from content_utils import generate_schedule_html
 
 from aiogram.filters import CommandObject
 from typing import Optional
@@ -74,7 +78,18 @@ async def get_post_preview(
 
 # @router.message(F.text == kb.CONTENT_PLAN_BTN)
 # async def content_plan(message: Message):
-#     await message.answer("<b>Контент-план</b>\n", reply_markup=kb.content_plan_kb())
+#     settings = await database.get_settings(message.from_user.id)
+#     schedule = generate_schedule_html(
+#         cp_mode=settings.notifications_mode,
+#         cp_time=settings.notifications_time,
+#         platforms=settings.notifiactions_platforms
+#     )
+#     await message.answer(
+#         text=schedule,
+#         reply_markup=kb.content_plan_kb(
+#             current_mode=
+#         )
+#     )
 
 @router.message(Edit.name, F.text == kb.BACK_BTN)
 @router.message(Edit.email, F.text == kb.BACK_BTN)
@@ -213,6 +228,11 @@ async def approve_photo_wrong(message: Message):
 async def wrong_input(message: Message):
     await message.answer("Недопустимый формат ввода", reply_markup=kb.back_kb())
 
+async def add_to_waiting_list(message: Message, user_id: int, username):
+    await database.add_user(user_id, username, UserStatus.WAITING_LIST)
+    await message.answer("<b>Вы добавлены в лист ожидания.</b>\n\nСейчас Бот находится в разработке. Мы добавили вас в лист ожидания — вы получите уведомление, когда Бот будет запущен.")
+
+
 @router.message(CommandStart(deep_link=True))
 async def get_post_content_cb(message: Message, state: FSMContext, command: CommandObject):
     payload = command.args
@@ -235,6 +255,11 @@ async def get_post_content_cb(message: Message, state: FSMContext, command: Comm
             await message.answer("Публикация не доступна")
         return
     else:
+        if payload == "paymen7check":
+            await database.add_user(user.id, user.username, UserStatus.REGISTRATION)
+            await start_registration(message, state, user.id)
+            return
+        
         creator_id = await database.use_invite_link(payload, user.id)
         if creator_id:
             logging.info(f"Пользователь {user.id} добавлен в бота по ссылку от {creator_id}")
@@ -246,17 +271,15 @@ async def get_post_content_cb(message: Message, state: FSMContext, command: Comm
             except Exception as ex:
                 logging.error(f"Не получилось отправить сообщение для ({creator_id}) об активации доступа - {ex}")
         else:
-            await database.add_user(user.id, user.username, UserStatus.WAITING_LIST)
-            await message.answer("<b>Вы добавлены в лист ожидания.</b>\n\nСейчас Бот находится в разработке. Мы добавили вас в лист ожидания — вы получите уведомление, когда Бот будет запущен.")
-
+            await add_to_waiting_list(message, user.id, user.username)
+            
 @router.message(CommandStart())
 async def start(message: Message, state: FSMContext):
     user = message.from_user
     status = await database.get_user_status(user.id)
 
     if not status or status == UserStatus.WAITING_LIST:
-        await database.add_user(user.id, user.username, UserStatus.WAITING_LIST)
-        await message.answer("<b>Вы добавлены в лист ожидания.</b>\n\nСейчас Бот находится в разработке. Мы добавили вас в лист ожидания — вы получите уведомление, когда Бот будет запущен.")
+        await add_to_waiting_list(message, user.id, user.username)
         return
     
     if status == UserStatus.INVITED:
@@ -504,6 +527,19 @@ async def lesson_id(call: CallbackQuery):
         ),
         reply_markup=kb.lesson_kb(lesson_id)
     )
+
+@router.callback_query(F.data == "show_docs")
+async def docs(call: CallbackQuery):
+    media_group = MediaGroupBuilder(
+        media=[
+            InputMediaDocument(media="documents/Политика_конфиденциальности_ОФИС_БРОКЕРА.pdf"),
+            InputMediaDocument(media="documents/Пользовательское_соглашение_ОФИС_БРОКЕРА.pdf"),
+            InputMediaDocument(media="documents/Публичная_оферта_ОФИС_БРОКЕРА.pdf"),
+            InputMediaDocument(media="documents/Согласие_на_обработку_персональных_данных_ОФИС_БРОКЕРА.pdf"),
+        ]
+    )
+
+    await call.message.answer_media_group(media_group.build())
 
 
 @router.callback_query()

@@ -2,11 +2,14 @@ from aiogram import Router, F
 from aiogram.types import (
     Message,
     FSInputFile,
-    CallbackQuery
+    CallbackQuery,
+    InputMediaDocument
 )
 from aiogram.fsm.context import FSMContext
+from aiogram.utils.media_group import MediaGroupBuilder
 from aiogram.enums import ChatAction
 from aiogram.filters import CommandStart
+
 
 from ..utils import keyboards as kb
 from ..utils.states import Registration
@@ -39,11 +42,23 @@ async def start_registration(message: Message, state: FSMContext, user_id: int):
         "🏙 Календарю брокер-туров",
         reply_markup=kb.remove_kb()
     )
+
+    media_group = MediaGroupBuilder(
+        media=[
+            InputMediaDocument(media="documents/Политика_конфиденциальности_ОФИС_БРОКЕРА.pdf"),
+            InputMediaDocument(media="documents/Пользовательское_соглашение_ОФИС_БРОКЕРА.pdf"),
+            InputMediaDocument(media="documents/Публичная_оферта_ОФИС_БРОКЕРА.pdf"),
+            InputMediaDocument(media="documents/Согласие_на_обработку_персональных_данных_ОФИС_БРОКЕРА.pdf"),
+        ],
+        caption="👆🏻\nПеред регистрацией, ознакомьтесь с документами выше"
+    )
+
+    await message.answer_media_group(media_group.build())
     await message.bot.send_chat_action(
         chat_id=message.from_user.id,
         action=ChatAction.TYPING
     )
-    await asyncio.sleep(1)
+    await asyncio.sleep(5)
 
     await input_name(message, state)
 
