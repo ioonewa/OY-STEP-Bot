@@ -340,19 +340,24 @@ async def add_music_segment(
         video_duration = float(raw.decode().strip())
     except Exception as e:
         raise RuntimeError(f"Некорректная длительность в ffprobe output для {video_path}: {e}")
+    
+    if duration is None:
+        duration = video_duration
+    else:
+        duration = min(duration, video_duration)
 
+    # ...
     if start < 0:
         raise ValueError("start не может быть отрицательным")
-    if start > video_duration:
-        raise ValueError("start выходит за пределы длительности видео")
 
-    # 2) Вычисляем реальную длительность наложения
+    # 2) вычисляем реальную длительность накладываемого фрагмента
     if duration is None:
-        duration = video_duration - start
+        duration = video_duration
     else:
-        # если указанная длительность выходит за конец — обрезаем до конца
-        if start + duration > video_duration:
-            duration = max(0.0, video_duration - start)
+        duration = min(duration, video_duration)
+
+    if duration <= 0:
+        raise ValueError("Нечего накладывать: duration <= 0")
 
     if duration <= 0:
         raise ValueError("Нечего накладывать: вычисленная duration <= 0")
@@ -391,23 +396,17 @@ async def add_music_segment(
         music_channels = 1
 
     # 5) Строим filter_complex
-    start_ms = int(round(start * 1000))
-    dur_txt = f"{duration:.3f}"
-    # подготовка delays в формате "ms|ms|ms" для количества каналов
-    delays = "|".join(str(start_ms) for _ in range(music_channels)) if start_ms > 0 else ""
-    # цепочка для музыки: обрезаем -> синхронизируем тайминги -> регулируем громкость -> (если нужно) задержка
-    music_chain = f"[1:a]atrim=0:{dur_txt},asetpts=PTS-STARTPTS,volume={music_volume}"
-    if start_ms > 0:
-        music_chain += f",adelay={delays}"
-    music_chain += "[m]"  # временная метка для музыки
+    # 5) Строим filter_complex
+    # музыка: отрезаем от 'start' до 'start+duration', громкость
+    music_chain = (
+        f"[1:a]atrim={start}:{start + duration},"
+        f"asetpts=PTS-STARTPTS,volume={music_volume}[m]"
+    )
 
     if video_has_audio:
-        # смешиваем оригинальную дорожку и музыку
-        # [0:a] - оригинал, [m] - подготовленная музыка -> amix -> [a]
         filter_complex = f"{music_chain};[0:a][m]amix=inputs=2:dropout_transition=0[a]"
         audio_map = "[a]"
     else:
-        # видео не имеет аудио — просто используем подготовленную музыку как итоговую дорожку
         filter_complex = music_chain
         audio_map = "[m]"
 
