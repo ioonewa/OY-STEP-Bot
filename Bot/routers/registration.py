@@ -49,18 +49,19 @@ async def start_registration(message: Message, state: FSMContext, user_id: int):
             InputMediaDocument(media="documents/Пользовательское_соглашение_ОФИС_БРОКЕРА.pdf"),
             InputMediaDocument(media="documents/Публичная_оферта_ОФИС_БРОКЕРА.pdf"),
             InputMediaDocument(media="documents/Согласие_на_обработку_персональных_данных_ОФИС_БРОКЕРА.pdf"),
-        ],
-        caption="👆🏻\nПеред регистрацией, ознакомьтесь с документами выше"
+        ]
     )
 
     await message.answer_media_group(media_group.build())
-    await message.bot.send_chat_action(
-        chat_id=message.from_user.id,
-        action=ChatAction.TYPING
+    await message.answer(
+        "👆🏻\nПеред регистрацией, ознакомьтесь с документами выше\n\nПродолжая использовать бота вы соглашаетесь с политикой конфиденциальности",
+        reply_markup=kb.reg_kb()
     )
-    await asyncio.sleep(5)
 
-    await input_name(message, state)
+@router.callback_query(F.text == "reg:agree")
+async def approve_reg(call: CallbackQuery, state: FSMContext):
+    await call.message.edit_reply_markup()
+    await input_name(call.message, state)
 
 async def input_name(message: Message, state: FSMContext):
     await message.answer(
