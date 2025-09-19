@@ -24,7 +24,7 @@ import logging
 
 router = Router()
 
-# https://t.me/oystep_bot?start=
+# https://t.me/oystep_bot?start=paymen7check
 # https://t.me/oysteptest_bot?start=
 
 async def get_post_preview(
@@ -191,7 +191,7 @@ async def get_video(call: CallbackQuery):
             output_path=f"{source_dir}/{post_id}_{obj}_{style}.mp4",
             fade_duration=0.5
         )
-        if post_id in [10, 11, 12]:
+        if post_id in [10, 11, 12,13]:
             out_file = await add_music_segment(
                 video_path=out_file,
                 music_path=f"content/templates/{post_id}/{style}/music.mp3",
