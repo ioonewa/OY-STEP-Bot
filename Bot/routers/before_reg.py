@@ -8,11 +8,11 @@ router = Router()
 @router.message(Command("info"))
 async def payment_data(message: Message):
     await message.answer(
-        "<b>OYSTEP | Офис брокера.</b>\n\n"
+        "<b>OYSTEP | Офис брокера.</b>\n\n\n"
         "Наши услуги и цены:\n\n"
-        "⭐️ Подписка Стандарт — 5000 ₽/мес\n\n"
+        "⭐️ Подписка Стандарт — 5000 ₽/мес\n\n\n"
         """Данные о компании:
-        
+
 <i>ИП Мудрак Максим Владимирович
 ИНН 230603988280
 ОГРН 325237500344922
