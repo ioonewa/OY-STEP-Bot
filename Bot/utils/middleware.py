@@ -23,7 +23,7 @@ class AccessMiddleware(BaseMiddleware):
             return
         
         # пропускаем команду /start (включая /start <код>)
-        if event.text and event.text.startswith("/start"):
+        if event.text and (event.text.startswith("/start") or event.text == "/info"):
             return await handler(event, data)
         
         user = await database.get_user(event.from_user.id)
